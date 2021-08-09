@@ -45,63 +45,63 @@ def cnn(input_x, input_y,
 
     kernel_size = kernel_size
 
-    # model = models.Sequential()
-    # model.add(
-    #     layers.Conv1D(
-    #         filters=128,
-    #         kernel_size=kernel_size,
-    #         activation="relu",
-    #         input_shape=(input_x, input_y),
-    #         name="input_layer"
-    #     )
-    # )
-    # model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
-    # model.add(layers.Conv1D(filters=64, kernel_size=kernel_size,
-    #     activation="relu", name="conv1d_1"))
-    # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
-    #     activation="relu", name="conv1d_2"))
+    model = models.Sequential()
+    model.add(
+        layers.Conv1D(
+            filters=128,
+            kernel_size=kernel_size,
+            activation="relu",
+            input_shape=(input_x, input_y),
+            name="input_layer"
+        )
+    )
+    model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
+    model.add(layers.Conv1D(filters=64, kernel_size=kernel_size,
+        activation="relu", name="conv1d_1"))
+    model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
+        activation="relu", name="conv1d_2"))
     # model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
     # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
     #     activation="relu", name="conv1d_3"))
     # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
-        # activation="relu", name="conv1d_4"))
-    # model.add(layers.Dropout(rate=0.1))
-    # model.add(layers.Flatten(name="flatten"))
-    # model.add(layers.Dense(128, activation="relu", name="dense_1"))
-    # model.add(layers.Dense(64, activation="relu", name="dense_2"))
+    #     activation="relu", name="conv1d_4"))
+    model.add(layers.Dropout(rate=0.1))
+    model.add(layers.Flatten(name="flatten"))
+    model.add(layers.Dense(128, activation="relu", name="dense_1"))
+    model.add(layers.Dense(64, activation="relu", name="dense_2"))
     # model.add(layers.Dense(32, activation="relu", name="dense_3"))
-    # model.add(layers.Dropout(rate=0.1))
-    # model.add(layers.Dense(output_length, activation=output_activation,
-    #     name="output_layer"))
-    # model.compile(optimizer="adam", loss=loss, metrics=metrics)
+    model.add(layers.Dropout(rate=0.1))
+    model.add(layers.Dense(output_length, activation=output_activation,
+        name="output_layer"))
+    model.compile(optimizer="adam", loss=loss, metrics=metrics)
 
     # model.compile(optimizer=optimizers.Adam(lr=1e-8, beta_1=0.9, beta_2=0.999, 
     #     epsilon=1e-8, decay=0.0001), loss=loss, metrics=metrics)
 
-    input_dimension     = 2560
-    output_dimension    = output_length
-    n_steps, n_length, n_features = 10, 256, 1
-    lr_super = 0.001
-    dropout = 0.2
-    L2 = 0
-    print(input_x)
+    # input_dimension     = 2560
+    # output_dimension    = output_length
+    # n_steps, n_length, n_features = 10, 256, 1
+    # lr_super = 0.001
+    # dropout = 0.2
+    # L2 = 0
+    # print(input_x)
     
-    input_ = keras.Input((None, n_length, n_features))
-    out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
-    out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(out)
-    out = layers.TimeDistributed(layers.Dropout(0.1))(out)
-    out = layers.TimeDistributed(layers.MaxPooling1D(pool_size=2))(out)
-    out = layers.TimeDistributed(layers.Flatten())(out)
-    out = layers.LSTM(128, return_sequences=True)(out)
-    out = layers.Dropout(0.2)(out)
-    out = layers.LSTM(64, return_sequences=True)(out)
-    out = layers.Dropout(0.2)(out)
-    out = layers.LSTM(32)(out)
-    out = layers.Dense(32, activation='relu')(out)
-    output_ = layers.Dense(output_dimension, activation='softmax')(out)
-    model = Model(inputs=input_, outputs=output_)
-    op = keras.optimizers.Adam(lr=lr_super)
-    model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
+    # input_ = keras.Input((None, n_length, n_features))
+    # out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
+    # out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(out)
+    # out = layers.TimeDistributed(layers.Dropout(0.1))(out)
+    # out = layers.TimeDistributed(layers.MaxPooling1D(pool_size=2))(out)
+    # out = layers.TimeDistributed(layers.Flatten())(out)
+    # out = layers.LSTM(128, return_sequences=True)(out)
+    # out = layers.Dropout(0.2)(out)
+    # out = layers.LSTM(64, return_sequences=True)(out)
+    # out = layers.Dropout(0.2)(out)
+    # out = layers.LSTM(32)(out)
+    # out = layers.Dense(32, activation='relu')(out)
+    # output_ = layers.Dense(output_dimension, activation='softmax')(out)
+    # model = Model(inputs=input_, outputs=output_)
+    # op = keras.optimizers.Adam(lr=lr_super)
+    # model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
 
     return model
 
@@ -231,3 +231,49 @@ def cnndnn(input_x, input_y, n_forecast_hours, n_steps_out=1):
     model.compile( optimizer='adam', loss='mae')
 
     return model
+
+def model6(x_tr_feature_dim, y_tr_dim, lr_super=0.001, hidden_nodes=512, dropout=0.2, L2=0):
+    input_dimension     = x_tr_feature_dim
+    output_dimension    = y_tr_dim
+    n_steps, n_length, n_features = 10, 256, 4
+    
+    input_ = keras.Input((None, n_length, n_features))
+    out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
+    out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(out)
+    out = layers.TimeDistributed(layers.Dropout(0.1))(out)
+    out = layers.TimeDistributed(layers.MaxPooling1D(pool_size=2))(out)
+    out = layers.TimeDistributed(layers.Flatten())(out)
+    out = layers.LSTM(128, return_sequences=True)(out)
+    out = layers.Dropout(0.2)(out)
+    out = layers.LSTM(64, return_sequences=True)(out)
+    out = layers.Dropout(0.2)(out)
+    out = layers.LSTM(32)(out)
+    out = layers.Dense(32, activation='relu')(out)
+    output_ = layers.Dense(output_dimension, activation='softmax')(out)
+    model = Model(inputs=input_, outputs=output_)
+    op = keras.optimizers.Adam(lr=lr_super)
+    model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
+    model.summary()
+    return  model
+
+def model4(x_tr_feature_dim, y_tr_dim, lr_super=0.001, hidden_nodes=512, dropout=0.5, L2=0):
+    input_dimension     = x_tr_feature_dim
+    output_dimension    = y_tr_dim
+    n_steps, n_length, n_features   = 10, 256, 4
+    
+    input_  = keras.Input((None, n_length, n_features))
+    out     = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
+    out     = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(out)
+    out     = layers.TimeDistributed(layers.Dropout(dropout))(out)
+    out     = layers.TimeDistributed(layers.MaxPooling1D(pool_size=2))(out)
+    out     = layers.TimeDistributed(layers.Flatten())(out)
+    out     = layers.LSTM(100)(out)
+    out     = layers.Dropout(dropout)(out)
+    out     = layers.Dense(100, activation='relu')(out)
+    output_ = layers.Dense(output_dimension, activation='softmax')(out)
+    model   = Model(inputs=input_, outputs=output_)
+    
+    op = keras.optimizers.Adam(lr=lr_super)
+    model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
+    model.summary()
+    return  model

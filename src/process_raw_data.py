@@ -27,68 +27,95 @@ import numpy as np
 import pandas as pd
 import pickle
 import plotly.graph_objects as go
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
-from preprocess_utils import split_sequences
+from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH
+from model import cnn, model6, model4
+from preprocess_utils import split_sequences, move_column
 
 pd.options.plotting.backend = "plotly"
 
-def read_wesad_data(subject_number):
+def read_wesad_data(subject_numbers):
 
-    data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
+    dfs = []
 
-    with open(data_file, 'rb') as f:
-            data = pickle.load(f, encoding="latin1")
+    for subject_number in subject_numbers:
 
-    label = data["label"]
-    signal = data["signal"]
-    chest = signal["chest"]
-    wrist = signal["wrist"]
+        data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
 
-    chest_sample_freq = 700
-    wrist_bvp_sample_freq = 64
-    wrist_acc_sample_freq = 32
-    wrist_eda_sample_freq = 4
-    n_seconds = label.size/chest_sample_freq
-    new_sample_freq = 256
-    chest_timestamps = np.linspace(0, n_seconds, label.size)
-    wrist_bvp_timestamps = np.linspace(0, n_seconds, wrist["BVP"].size)
-    wrist_acc_timestamps = np.linspace(0, n_seconds, wrist["ACC"].shape[0])
-    wrist_eda_timestamps = np.linspace(0, n_seconds, wrist["EDA"].size)
-    new_timestamps = np.linspace(0, n_seconds, int(n_seconds*new_sample_freq))
+        with open(data_file, 'rb') as f:
+                data = pickle.load(f, encoding="latin1")
 
-    df = pd.DataFrame()
+        label = data["label"]
+        signal = data["signal"]
+        chest = signal["chest"]
+        wrist = signal["wrist"]
 
+        chest_sample_freq = 700
+        # wrist_bvp_sample_freq = 64
+        # wrist_acc_sample_freq = 32
+        # wrist_eda_sample_freq = 4
+        n_seconds = label.size/chest_sample_freq
+        new_sample_freq = 64
+        label_timestamps = np.linspace(0, n_seconds, label.size)
+        wrist_bvp_timestamps = np.linspace(0, n_seconds, wrist["BVP"].size)
+        wrist_acc_timestamps = np.linspace(0, n_seconds, wrist["ACC"].shape[0])
+        wrist_eda_timestamps = np.linspace(0, n_seconds, wrist["EDA"].size)
+        new_timestamps = np.linspace(0, n_seconds, int(n_seconds*new_sample_freq))
+
+        df = pd.DataFrame()
+
+        df["label"] = label
+        # df["chest_acc_x"] = chest["ACC"][:,0]
+        # df["chest_acc_y"] = chest["ACC"][:,1]
+        # df["chest_acc_z"] = chest["ACC"][:,2]
+        # df["chest_ecg"] = chest["ECG"]
+        # df["chest_emg"] = chest["EMG"]
+        # df["chest_eda"] = chest["EDA"]
+        # df["chest_temp"] = chest["Temp"]
+        # df["chest_resp"] = chest["Resp"]
+
+        # fig = df.loc[0:3500,:].plot()
+        # fig.write_html("plot.html")
+
+        df = reindex_data(df, label_timestamps, new_timestamps)
+        df["wrist_bvp"] = wrist["BVP"]
+        # df["wrist_bvp"] = reindex_data(wrist["BVP"].reshape(-1),
+        #         wrist_bvp_timestamps, new_timestamps)
+
+        # df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
+        #         wrist_eda_timestamps, new_timestamps)
+
+        # df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
+        #         wrist_eda_timestamps, new_timestamps)
+
+        for i, axis in enumerate(["x", "y", "z"]):
+            df[f"wrist_acc_{axis}"] = reindex_data(wrist["ACC"][:,i],
+                    wrist_acc_timestamps, new_timestamps)
+
+        # Remove unusable labels:
+        labels_to_ignore = [0,5,6,7]
+        df = df[~df["label"].isin(labels_to_ignore)]
+        df.reset_index(drop=True, inplace=True)
+
+        print(f"Saved subject number {subject_number}.")
+
+        df.to_csv(f"assets/data/raw/wesad_csv/{subject_number}.csv")
+        dfs.append(df)
+
+    df = pd.concat(dfs, ignore_index=True)
+
+
+    label = np.array(df["label"].copy())
+
+    del df["label"]
+    df = StandardScaler().fit_transform(np.array(df))
+    df = pd.DataFrame(df)
     df["label"] = label
-    # df["chest_acc_x"] = chest["ACC"][:,0]
-    # df["chest_acc_y"] = chest["ACC"][:,1]
-    # df["chest_acc_z"] = chest["ACC"][:,2]
-    df["chest_ecg"] = chest["ECG"]
-    # df["chest_emg"] = chest["EMG"]
-    # df["chest_eda"] = chest["EDA"]
-    # df["chest_temp"] = chest["Temp"]
-    # df["chest_resp"] = chest["Resp"]
 
-    # fig = df.loc[0:3500,:].plot()
-    # fig.write_html("plot.html")
-
-    # df = reindex_data(df, chest_timestamps, new_timestamps)
-    # df["wrist_bvp"] = reindex_data(wrist["BVP"].reshape(-1),
-    #         wrist_bvp_timestamps, new_timestamps)
-
-    # df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
-    #         wrist_eda_timestamps, new_timestamps)
-
-    # df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
-    #         wrist_eda_timestamps, new_timestamps)
-
-    # for i, axis in enumerate(["x", "y", "z"]):
-    #     df[f"wrist_acc_{axis}"] = reindex_data(wrist["ACC"][:,i],
-    #             wrist_acc_timestamps, new_timestamps)
-
-    # Remove unusable labels:
-    labels_to_ignore = [0,5,6,7]
-    df = df[~df["label"].isin(labels_to_ignore)]
-    df.reset_index(drop=True, inplace=True)
+    df = move_column(df, "label", 0)
 
     # df.index.name = "time"
 
@@ -97,13 +124,69 @@ def read_wesad_data(subject_number):
 
     # fig = df["label"].plot()
     # fig.write_html("label.html")
+    # print(df)
 
-    X, y = split_sequences(np.array(df), 256)
+    X, y = split_sequences(np.array(df), 2560)
+    # X = np.array(df.iloc[:,1:])
+    # y = np.array(df.iloc[:,0])
 
-    # df.to_csv(f"{subject_number}.csv")
-    # print(f"Saved subject number {subject_number}.")
+    # print(y)
+    np.savez("assets/data/wesad.npz", X=X, y=y)
 
-    # return df
+def train():
+
+    data = np.load("assets/data/wesad.npz")
+    X = data["X"]
+    y = data["y"] - 1
+
+    # xx = X.reshape(X.shape[0]//64, int(4*64))
+    # # xx = np.clip(xx, -5, 5)
+    # plt.imshow(xx, cmap="hot", interpolation='nearest')
+    # plt.colorbar()
+
+    # print(X.shape)
+    # plt.plot(X[49,:,0])
+    # plt.imshow(x[0,:,:])
+    # plt.show()
+
+    # X = np.flip(X, 1)
+
+    # xx = X.flatten()
+    # import matplotlib.pyplot as plt
+    # # plt.plot(X[0,:])
+    # plt.plot(xx)
+    # plt.show()
+    # X = X.flatten()
+
+    X = np.reshape(X, (X.shape[0], 10, 256, 4))
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(X[0,:,0])
+    # plt.show()
+
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3,
+            random_state=5, shuffle=True)
+
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes=4)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes=4)
+
+    np.savez("assets/data/combined/test.npz", X=X_test, y=y_test)
+
+
+    model = model6(256, y_tr_dim=4)
+            # kernel_size=5,
+            # output_activation="softmax", loss="categorical_crossentropy",
+            # metrics=["accuracy"]
+    # )
+
+
+    model.fit(X_train, y_train, epochs=100, batch_size=64,
+            validation_split=0.2, shuffle=True)
+
+
+    model.save(MODELS_FILE_PATH)
+
 
 def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
     """Reindex data by using timestamps as reference.
@@ -130,9 +213,12 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
 
 if __name__ == '__main__': 
 
-    # subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
+    subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
     # subject_numbers = [2,3,4,5]
-    subject_numbers = [2]
+    # subject_numbers = [2]
+    read_wesad_data(subject_numbers)
 
-    for s in subject_numbers:
-        read_wesad_data(s)
+    # for s in subject_numbers:
+    #     read_wesad_data(s)
+
+    train()

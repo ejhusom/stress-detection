@@ -138,10 +138,6 @@ def scale(dir_path):
             y = y
         )
 
-        # import matplotlib.pyplot as plt
-        # plt.plot(y)
-        # plt.show()
-
 if __name__ == "__main__":
 
     np.random.seed(2020)

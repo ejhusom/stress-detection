@@ -1,6 +1,7 @@
 # data-files
 *.dat
 *.csv
+*.npz
 assets/data/raw
 !assets/data/raw/README.md
 

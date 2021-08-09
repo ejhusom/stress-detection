@@ -119,7 +119,12 @@ def move_column(df, column_name, new_idx):
     return df[reordered_columns]
 
 
-def split_sequences(sequences, window_size, target_size=1, n_target_columns=1):
+def split_sequences(sequences, 
+        window_size, 
+        target_size=1, 
+        n_target_columns=1,
+        overlap=0
+    ):
     """Split data sequence into samples with matching input and targets.
 
     Args:
@@ -137,44 +142,21 @@ def split_sequences(sequences, window_size, target_size=1, n_target_columns=1):
 
     """
     import time
-    t = time.process_time()
 
     X, y = list(), list()
-
-    # X = np.zeros((1, window_size, sequences.shape[-1]-n_target_columns))
-    # y = np.zeros((1, window_size, n_target_columns))
 
     start_idx = 0
 
     while start_idx + window_size <= len(sequences):
-        seq_x = sequences[start_idx : start_idx + window_size, n_target_columns:]
-        seq_y = sequences[start_idx : start_idx + window_size, 0:n_target_columns]
-        # seq_x = seq_x.reshape(1, seq_x.shape[-2], seq_x.shape[-1])
-        # seq_y = seq_y.reshape(1, seq_y.shape[-2], seq_y.shape[-1])
-        # seq_y = seq_y.reshape(-1)
-
+        end_idx = start_idx + window_size
+        seq_x = sequences[start_idx : end_idx, n_target_columns:]
+        seq_y = sequences[end_idx - 1, 0:n_target_columns]
         X.append(seq_x)
         y.append(seq_y)
-        # print(X.shape)
-        # print(seq_x.shape)
-        # print(y.shape)
-        # print(seq_y.shape)
-        # X = np.append(X, seq_x, axis=0)
-        # y = np.append(y, seq_y, axis=0)
-
-        start_idx += window_size
+        start_idx += window_size - overlap
 
     X = np.array(X)
     y = np.array(y)
-
-    # X = X[1:]
-    # y = y[1:]
-
-    t = time.process_time() - t
-    print(f"Time: {t}")
-
-    print(X.shape)
-    print(y.shape)
     
     return X, y
 

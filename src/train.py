@@ -17,6 +17,7 @@ from joblib import dump, load
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
@@ -30,7 +31,7 @@ import xgboost as xgb
 
 from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH
 from config import PLOTS_PATH
-from model import cnn, dnn, lstm, cnndnn
+from model import cnn, dnn, lstm, cnndnn, model4
 
 def train(filepath):
     """Train model to estimate power.
@@ -61,6 +62,18 @@ def train(filepath):
     X_train = train["X"]
     y_train = train["y"]
 
+    # import seaborn as sns
+    # xx = X_train.reshape(X_train.shape[0], 10240)
+    # xx = np.clip(xx, -5, 5)
+    # ax = sns.heatmap(xx, linewidth=0.5)
+    # plt.imshow(xx, cmap="hot", interpolation='nearest')
+    # plt.colorbar()
+
+    # print(X_train.shape)
+    # plt.plot(X_train[49,:,0])
+    # plt.imshow(x[0,:,:])
+    # plt.show()
+
     n_features = X_train.shape[-1]
 
     hist_size = X_train.shape[-2]
@@ -85,14 +98,13 @@ def train(filepath):
 
     # Build model
     if net == "cnn":
-        print(X_train.shape)
-        X_train = np.reshape(X_train, (X_train.shape[0], 10, 256, 1))
-        print(X_train.shape)
+        X_train = np.reshape(X_train, (X_train.shape[0], 10, 256, 4))
         hist_size = X_train.shape[-2]
-        model = cnn(hist_size, n_features, output_length=output_length,
-                kernel_size=params["kernel_size"],
-                output_activation=output_activation, loss=loss, metrics=metrics
-        )
+        # model = cnn(hist_size, n_features, output_length=output_length,
+        #         kernel_size=params["kernel_size"],
+        #         output_activation=output_activation, loss=loss, metrics=metrics
+        # )
+        model = model4(256, y_tr_dim=4)
     elif net == "dnn":
         model = dnn(n_features, output_length=output_length,
                 output_activation=output_activation, loss=loss,

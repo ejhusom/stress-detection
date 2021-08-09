@@ -92,7 +92,7 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
     test = np.load(test_filepath)
     X_test = test["X"]
-    X_test = np.reshape(X_test, (X_test.shape[0], 10, 256, 1))
+    X_test = np.reshape(X_test, (X_test.shape[0], 10, 256, 4))
     y_test = test["y"]
 
     # pandas data frame to store predictions and ground truth.
