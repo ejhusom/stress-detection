@@ -4,10 +4,10 @@
 
 TODO: Remove features with high correlation
 
-Author:   
+Author:
     Erik Johannes Husom
 
-Created:  
+Created:
     2021-06-30
 
 """
@@ -15,17 +15,13 @@ import json
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
-from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
-from sklearn.utils import shuffle
 
 from config import DATA_CLEANED_PATH, DATA_PATH, PROFILE_PATH
-from preprocess_utils import find_files, move_column
-from profiling import profile
+from preprocess_utils import find_files
 
 
 def clean(dir_path):
@@ -37,12 +33,17 @@ def clean(dir_path):
     """
 
     # Load parameters
-    dataset = yaml.safe_load(open("params.yaml"))["preprocess"]["dataset"]
-    params = yaml.safe_load(open("params.yaml"))["clean"]
-    combine_files = params["combine_files"]
-    target = params["target"]
-    classification = params["classification"]
-    onehot_encode_target = params["onehot_encode_target"]
+    dataset = yaml.safe_load(open("params.yaml"))["profile"]["dataset"]
+    params = yaml.safe_load(open("params.yaml"))
+    combine_files = params["clean"]["combine_files"]
+    target = params["clean"]["target"]
+    classification = params["clean"]["classification"]
+    onehot_encode_target = params["clean"]["onehot_encode_target"]
+
+    # If no name of data set is given, all files present in 'assets/data/raw'
+    # will be used.
+    if dataset is not None:
+        dir_path += "/" + dataset
 
     filepaths = find_files(dir_path, file_extension=".csv")
 
@@ -62,8 +63,8 @@ def clean(dir_path):
         if df.iloc[:, 0].is_monotonic:
             df = df.iloc[:, 1:]
 
-        for c in removable_variables:
-            del df[c]
+        for column in removable_variables:
+            del df[column]
 
         df.dropna(inplace=True)
 
@@ -164,17 +165,21 @@ def parse_profile_warnings():
     percentage_zeros_threshold = params["percentage_zeros_threshold"]
     input_max_correlation_threshold = params["input_max_correlation_threshold"]
 
-    for m in messages:
-        m = m.split()
-        warning = m[0]
-        variable = m[-1]
+    for message in messages:
+        message = message.split()
+        warning = message[0]
+        variable = message[-1]
 
         if warning == "[CONSTANT]":
             removable_variables.append(variable)
+            print(f"Removed variable '{variable}' because it is constant.")
         if warning == "[ZEROS]":
             p_zeros = profile_json["variables"][variable]["p_zeros"]
             if p_zeros > percentage_zeros_threshold:
                 removable_variables.append(variable)
+                print(
+                    f"Removed variable '{variable}' because % of zeros exceeds {percentage_zeros_threshold*100}%."
+                )
         if warning == "[HIGH_CORRELATION]":
             try:
                 correlation_scores = correlations[variables.index(variable)]
@@ -183,11 +188,15 @@ def parse_profile_warnings():
                         correlation_scores[correlated_variable]
                         > input_max_correlation_threshold
                         and variable != correlated_variable
+                        and variable != target
+                        and correlated_variable != target
                         and variable not in removable_variables
                     ):
 
                         removable_variables.append(correlated_variable)
-                        # print(f"{variable} is correlated with {correlated_variable}: {correlation_scores[correlated_variable]}")
+                        print(
+                            f"Removed variable '{correlated_variable}' because of high correlation ({correlation_scores[correlated_variable]:.2f}) with variable '{variable}'."
+                        )
             except:
                 # Pandas profiling might not be able to compute correlation
                 # score for some variables, for example some categorical
@@ -205,7 +214,5 @@ def parse_profile_warnings():
 
 
 if __name__ == "__main__":
-
-    np.random.seed(2020)
 
     clean(sys.argv[1])

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Evaluate deep learning model.
 
-Author:   
+Author:
     Erik Johannes Husom
 
-Created:  
+Created:
     2020-09-17
+
 
 """
 import json
-import os
 import shutil
 import sys
 
@@ -20,7 +20,7 @@ import plotly.graph_objects as go
 import seaborn as sn
 import shap
 import yaml
-from joblib import dump, load
+from joblib import load
 from nonconformist.base import RegressorAdapter
 from nonconformist.cp import IcpRegressor
 from nonconformist.nc import AbsErrorErrFunc, NcFactory, RegressorNc
@@ -35,21 +35,20 @@ from sklearn.metrics import (
 from sklearn.neighbors import KNeighborsRegressor
 from tensorflow.keras import metrics, models
 
+import neural_networks as nn
 from config import (
     DATA_PATH,
     INTERVALS_PLOT_PATH,
     METRICS_FILE_PATH,
+    NON_DL_METHODS,
     PLOTS_PATH,
     PREDICTION_PLOT_PATH,
-    PREDICTIONS_FILE_PATH,
-    PREDICTIONS_PATH,
+    PREDICTIONS_FILE_PATH
 )
 
-# from model import cnn, dnn, lstm, cnndnn
 
-
-# class MyCustomModel(RegressorMixin):
-class MyCustomModel(RegressorAdapter):
+# class ConformalPredictionModel(RegressorMixin):
+class ConformalPredictionModel(RegressorAdapter):
     """Implement custom sklearn model to use with the nonconformist library.
 
     Args:
@@ -63,8 +62,8 @@ class MyCustomModel(RegressorAdapter):
         # self.model = models.load_model(model_filepath)
         # self.model_filepath = model_filepath
 
-        # super(MyCustomModel, self).__init__(models.load_model(model_filepath), fit_params=None)
-        super(MyCustomModel, self).__init__(model)
+        # super(ConformalPredictionModel, self).__init__(models.load_model(model_filepath), fit_params=None)
+        super(ConformalPredictionModel, self).__init__(model)
 
     def fit(self, X=None, y=None):
         # We don't do anything here because we are loading an already trained model in __init__().
@@ -100,11 +99,10 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
     onehot_encode_target = yaml.safe_load(open("params.yaml"))["clean"][
         "onehot_encode_target"
     ]
-    net = params_train["net"]
+    learning_method = params_train["learning_method"]
 
     test = np.load(test_filepath)
     X_test = test["X"]
-    # X_test = np.reshape(X_test, (X_test.shape[0], 10, 256, 6))
     y_test = test["y"]
 
     # pandas data frame to store predictions and ground truth.
@@ -114,10 +112,10 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
     if params_split["calibrate_split"] > 0 and not classification:
         trained_model = models.load_model(model_filepath)
-        # mycustommodel = MyCustomModel(model_filepath)
-        mycustommodel = MyCustomModel(trained_model)
+        # conformal_pred_model = ConformalPredictionModel(model_filepath)
+        conformal_pred_model = ConformalPredictionModel(trained_model)
 
-        m = cnn(
+        m = nn.cnn(
             X_test.shape[-2],
             X_test.shape[-1],
             output_length=1,
@@ -125,13 +123,13 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         )
 
         nc = RegressorNc(
-            mycustommodel,
+            conformal_pred_model,
             err_func=AbsErrorErrFunc(),  # non-conformity function
             # normalizer_model=KNeighborsRegressor(n_neighbors=15)  # normalizer
             # normalizer=m
         )
 
-        # nc = NcFactory.create_nc(mycustommodel,
+        # nc = NcFactory.create_nc(conformal_pred_model,
         #     err_func=AbsErrorErrFunc(),  # non-conformity function
         #     # normalizer_model=KNeighborsRegressor(n_neighbors=15)  # normalizer
         #     normalizer_model=m
@@ -187,29 +185,25 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
         save_predictions(df_predictions)
 
-        plot_intervals(df_predictions)
+        plot_confidence_intervals(df_predictions)
 
     else:
-        if net == "dt":
+        if learning_method in NON_DL_METHODS:
             model = load(model_filepath)
         else:
             model = models.load_model(model_filepath)
 
+        y_pred = model.predict(X_test)
+
         if onehot_encode_target:
-            y_pred = np.argmax(model.predict(X_test), axis=-1)
+            y_pred = np.argmax(y_pred, axis=-1)
         elif classification:
-            y_pred = model.predict(X_test)
             y_pred = np.array((y_pred > 0.5), dtype=np.int)
-        else:
-            y_pred = model.predict(X_test)
 
     if classification:
 
         if onehot_encode_target:
             y_test = np.argmax(y_test, axis=-1)
-
-        # y_test = y_test.reshape(-1)
-        # y_pred = y_pred.reshape(-1)
 
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")
@@ -221,6 +215,8 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         with open(METRICS_FILE_PATH, "w") as f:
             json.dump(dict(accuracy=accuracy), f)
 
+        # ==========================================
+        # TODO: Fix SHAP code
         # explainer = shap.TreeExplainer(model, X_test[:10])
         # shap_values = explainer.shap_values(X_test[:10])
         # plt.figure()
@@ -241,7 +237,9 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
         # print("Feature importances")
         # print(sorted_feature_importances)
+        # ==========================================
 
+    # Regression:
     else:
         mse = mean_squared_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
@@ -249,7 +247,7 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         print("MSE: {}".format(mse))
         print("R2: {}".format(r2))
 
-        plot_prediction(y_test, y_pred, inputs=X_test, info="(R2: {})".format(r2))
+        plot_prediction(y_test, y_pred, inputs=None, info="(R2: {})".format(r2))
 
         # Only plot predicted sequences if the output samples are sequences.
         if len(y_test.shape) > 1 and y_test.shape[1] > 1:
@@ -296,7 +294,7 @@ def save_predictions(df_predictions):
     df_predictions.to_csv(PREDICTIONS_FILE_PATH, index=False)
 
 
-def plot_intervals(df):
+def plot_confidence_intervals(df):
     """Plot the confidence intervals generated with conformal prediction.
 
     Args:
@@ -358,14 +356,11 @@ def plot_prediction(y_true, y_pred, inputs=None, info=""):
 
     x = np.linspace(0, y_true.shape[0] - 1, y_true.shape[0])
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    config = dict({"scrollZoom": True})
 
     if len(y_true.shape) > 1:
         y_true = y_true[:, -1].reshape(-1)
+    if len(y_pred.shape) > 1:
         y_pred = y_pred[:, -1].reshape(-1)
-    else:
-        y = y_true
-        y = y_pred
 
     fig.add_trace(
         go.Scatter(x=x, y=y_true, name="true"),
@@ -432,7 +427,7 @@ def plot_sequence_predictions(y_true, y_pred):
     predictions = []
 
     for i in pred_curve_idcs:
-        indeces = y_indeces[i : i + target_size]
+        indeces = y_indeces[i: i + target_size]
 
         if len(indeces) < target_size:
             break
@@ -453,8 +448,6 @@ def plot_sequence_predictions(y_true, y_pred):
 
 
 if __name__ == "__main__":
-
-    np.random.seed(2020)
 
     if len(sys.argv) < 3:
         try:

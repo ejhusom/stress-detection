@@ -19,34 +19,31 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from config import DATA_PATH, DATA_SEQUENTIALIZED_PATH
+from config import DATA_PATH, DATA_SEQUENTIALIZED_PATH, NON_DL_METHODS
 from preprocess_utils import (
     find_files,
     flatten_sequentialized,
-    read_csv,
     split_sequences,
 )
 
 
 def sequentialize(dir_path):
+    """Make sequences out of tabular data."""
 
     filepaths = find_files(dir_path, file_extension=".npz")
 
     DATA_SEQUENTIALIZED_PATH.mkdir(parents=True, exist_ok=True)
 
     params = yaml.safe_load(open("params.yaml"))["sequentialize"]
-    net = yaml.safe_load(open("params.yaml"))["train"]["net"]
+    learning_method = yaml.safe_load(open("params.yaml"))["train"]["learning_method"]
     classification = yaml.safe_load(open("params.yaml"))["clean"]["classification"]
 
-    hist_size = params["hist_size"]
+    window_size = params["window_size"]
 
     if classification:
         target_size = 1
     else:
         target_size = params["target_size"]
-
-    if target_size > hist_size:
-        raise ValueError("target_size cannot be larger than hist_size.")
 
     output_columns = np.array(
         pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
@@ -66,23 +63,26 @@ def sequentialize(dir_path):
 
         # Split into sequences
         X, y = split_sequences(
-            data, hist_size, target_size=target_size, n_target_columns=n_output_cols
+            data, window_size, target_size=target_size, n_target_columns=n_output_cols
         )
 
-        if net == "dnn" or net == "dt":
+        if learning_method == "dnn" or learning_method in NON_DL_METHODS:
             X = flatten_sequentialized(X)
+
+        if params["shuffle_samples"]:
+            permutation = np.random.permutation(X.shape[0])
+            X = np.take(X, permutation, axis=0)
+            y = np.take(y, permutation, axis=0)
 
         # Save X and y into a binary file
         np.savez(
             DATA_SEQUENTIALIZED_PATH
-            / (os.path.basename(filepath).replace("scaled.csv", "sequentialized.npz")),
+            / (os.path.basename(filepath).replace("scaled.npz", "sequentialized.npz")),
             X=X,
             y=y,
         )
 
 
 if __name__ == "__main__":
-
-    np.random.seed(2020)
 
     sequentialize(sys.argv[1])

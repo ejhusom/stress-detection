@@ -12,12 +12,12 @@ import json
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
 from pandas.api.types import is_numeric_dtype
 from scipy.signal import find_peaks
+from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 
 from config import DATA_FEATURIZED_PATH, DATA_PATH, PROFILE_PATH
@@ -33,20 +33,65 @@ def featurize(dir_path):
     """
 
     # Load parameters
-    params = yaml.safe_load(open("params.yaml"))["featurize"]
-    features = params["features"]
-    remove_features = params["remove_features"]
-    add_rolling_features = params["add_rolling_features"]
-    rolling_window_size = params["rolling_window_size"]
-    target = yaml.safe_load(open("params.yaml"))["clean"]["target"]
+    with open("params.yaml", "r") as params_file:
+        params = yaml.safe_load(params_file)
+
+    features = params["featurize"]["features"]
+    remove_features = params["featurize"]["remove_features"]
+    add_rolling_features = params["featurize"]["add_rolling_features"]
+    rolling_window_size = params["featurize"]["rolling_window_size"]
+    target = params["clean"]["target"]
 
     filepaths = find_files(dir_path, file_extension=".csv")
 
     DATA_FEATURIZED_PATH.mkdir(parents=True, exist_ok=True)
 
     output_columns = np.array(
-        pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
+        pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0, dtype=str)
     ).reshape(-1)
+
+    # ===============================================
+    # TODO: Automatic encoding of categorical input variables
+    # Read all data to fit one-hot encoder
+    dfs = []
+
+    for filepath in filepaths:
+        df = pd.read_csv(filepath, index_col=0)
+        dfs.append(df)
+
+    combined_df = pd.concat(dfs, ignore_index=True)
+
+    # ct = ColumnTransformer([('encoder', OneHotEncoder(), [38])],
+    #         remainder='passthrough')
+
+    # ct.fit(combined_df)
+
+    categorical_variables = find_categorical_variables()
+
+    # Remove target and variables that was removed in the cleaning process
+    categorical_variables = [
+        var
+        for var in categorical_variables
+        if var in combined_df.columns and var != target
+    ]
+
+    print(combined_df)
+    print(f"Cat: {categorical_variables}")
+    print(combined_df[categorical_variables])
+
+    column_transformer = ColumnTransformer(
+        [("encoder", OneHotEncoder(), categorical_variables)], remainder="passthrough"
+    )
+
+    # combined_df = column_transformer.fit_transform(combined_df)
+
+    # print(combined_df)
+    # print(combined_df.shape)
+    # print(combined_df[categorical_variables])
+
+    # categorical_encoder = OneHotEncoder()
+    # categorical_encoder.fit(combined_df)
+    # ===============================================
 
     for filepath in filepaths:
 
@@ -58,8 +103,7 @@ def featurize(dir_path):
             df = move_column(df, column_name=col, new_idx=0)
 
         # If no features are specified, use all columns as features
-        # TODO: Maybe not the most robust way to test this
-        if type(params["features"]) != list:
+        if not isinstance(features, list):
             features = df.columns
 
         # Check if wanted features from params.yaml exists in the data
@@ -71,7 +115,7 @@ def featurize(dir_path):
             # Remove feature from input. This is useful in the case that a raw
             # feature is used to engineer a feature, but the raw feature itself
             # should not be a part of the input.
-            if col not in features and not col.startswith(target):
+            if (col not in features) and (col not in output_columns):
                 del df[col]
 
             # Remove feature if it is non-numeric
@@ -87,10 +131,15 @@ def featurize(dir_path):
             for col in remove_features:
                 del df[col]
 
-        # Save data
-        df.to_csv(
+        # # Save data
+        # df.to_csv(
+        #     DATA_FEATURIZED_PATH
+        #     / (os.path.basename(filepath).replace(".", "-featurized."))
+        # )
+        np.save(
             DATA_FEATURIZED_PATH
-            / (os.path.basename(filepath).replace(".", "-featurized."))
+            / os.path.basename(filepath).replace("cleaned.csv", "featurized.npy"),
+            df.to_numpy(),
         )
 
     # Save list of features used
@@ -273,11 +322,11 @@ def find_categorical_variables():
 
     categorical_variables = []
 
-    for v in variables:
+    for var in variables:
 
         try:
-            n_categories = profile_json["variables"][v]["n_category"]
-            categorical_variables.append(v)
+            n_categories = profile_json["variables"][var]["n_category"]
+            categorical_variables.append(var)
         except:
             pass
 

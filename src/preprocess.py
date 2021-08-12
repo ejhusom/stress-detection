@@ -20,29 +20,16 @@ Notes:
     5/6/7: Should be ignored
 
 """
-import json
 import os
 import pickle
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 import yaml
 
-from config import (
-    DATA_PATH,
-    DATA_PATH_RAW,
-    DATA_PREPROCESSED_PATH,
-    MODELS_FILE_PATH,
-    MODELS_PATH,
-    TRAININGLOSS_PLOT_PATH,
-)
-from preprocess_utils import find_files, move_column, split_sequences
-
-pd.options.plotting.backend = "plotly"
-
+from config import DATA_PREPROCESSED_PATH, DATA_PATH_RAW
+from preprocess_utils import find_files
 
 def preprocess(dir_path):
     """Preprocess WESAD data.
@@ -52,7 +39,7 @@ def preprocess(dir_path):
 
     """
 
-    dataset = yaml.safe_load(open("params.yaml"))["preprocess"]["dataset"]
+    dataset = yaml.safe_load(open("params.yaml"))["profile"]["dataset"]
 
     if dataset != None:
         dir_path += "/" + dataset
@@ -128,7 +115,7 @@ def preprocess(dir_path):
         print(f"Saved file {filepath}.")
 
         df.to_csv(
-            DATA_PREPROCESSED_PATH
+            DATA_PATH_RAW
             / (os.path.basename(filepath).replace(".pkl", "-preprocessed.csv"))
         )
 

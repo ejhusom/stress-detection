@@ -9,9 +9,6 @@ Date:
     2020-09-16
 
 """
-from tensorflow import keras
-from tensorflow.keras import Model
-from tensorflow.keras import backend as K
 from tensorflow.keras import layers, models, optimizers
 from tensorflow.random import set_seed
 
@@ -20,7 +17,6 @@ def cnn(
     input_x,
     input_y,
     output_length=1,
-    seed=2020,
     kernel_size=2,
     output_activation="linear",
     loss="mse",
@@ -42,42 +38,100 @@ def cnn(
 
     """
 
-    set_seed(seed)
-
     kernel_size = kernel_size
 
     model = models.Sequential()
     model.add(
         layers.Conv1D(
-            filters=128,
+            filters=32,
             kernel_size=kernel_size,
             activation="relu",
             input_shape=(input_x, input_y),
             name="input_layer",
         )
     )
-    model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
+    # model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
     model.add(
         layers.Conv1D(
-            filters=64, kernel_size=kernel_size, activation="relu", name="conv1d_1"
+            filters=16, kernel_size=kernel_size, activation="relu", name="conv1d_2"
         )
     )
+    # model.add(layers.MaxPooling1D(pool_size=4, name="pool_2"))
+    # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
+    # activation="relu", name="conv1d_3"))
+    model.add(layers.Flatten(name="flatten"))
+    # model.add(layers.Dense(64, activation="relu", name="dense_2"))
+    model.add(layers.Dense(32, activation="relu", name="dense_3"))
+    model.add(
+        layers.Dense(output_length, activation=output_activation, name="output_layer")
+    )
+    model.compile(optimizer="adam", loss=loss, metrics=metrics)
+
+    return model
+
+
+def cnn2(
+    input_x,
+    input_y,
+    output_length=1,
+    kernel_size=2,
+    output_activation="linear",
+    loss="mse",
+    metrics="mse",
+):
+    """Define a CNN model architecture using Keras.
+
+    Args:
+        input_x (int): Number of time steps to include in each sample, i.e. how
+            much history is matched with a given target.
+        input_y (int): Number of features for each time step in the input data.
+        n_steps_out (int): Number of output steps.
+        seed (int): Seed for random initialization of weights.
+        kernel_size (int): Size of kernel in CNN.
+        output_activation: Activation function for outputs.
+
+    Returns:
+        model (keras model): Model to be trained.
+
+    """
+
+    kernel_size = kernel_size
+
+    model = models.Sequential()
     model.add(
         layers.Conv1D(
-            filters=32, kernel_size=kernel_size, activation="relu", name="conv1d_2"
+            filters=256,
+            kernel_size=kernel_size,
+            activation="relu",
+            input_shape=(input_x, input_y),
+            name="input_layer",
         )
     )
     # model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
+    model.add(
+        layers.Conv1D(
+            filters=128, kernel_size=kernel_size, activation="relu", name="conv1d_1"
+        )
+    )
+    model.add(
+        layers.Conv1D(
+            filters=64, kernel_size=kernel_size, activation="relu", name="conv1d_2"
+        )
+    )
+    model.add(layers.MaxPooling1D(pool_size=4, name="pool_1"))
+    model.add(
+        layers.Conv1D(
+            filters=32, kernel_size=kernel_size, activation="relu", name="conv1d_3"
+        )
+    )
     # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
-    #     activation="relu", name="conv1d_3"))
-    # model.add(layers.Conv1D(filters=32, kernel_size=kernel_size,
-    #     activation="relu", name="conv1d_4"))
-    model.add(layers.Dropout(rate=0.1))
+    # activation="relu", name="conv1d_4"))
+    # model.add(layers.Dropout(rate=0.1))
     model.add(layers.Flatten(name="flatten"))
     model.add(layers.Dense(128, activation="relu", name="dense_1"))
     model.add(layers.Dense(64, activation="relu", name="dense_2"))
-    # model.add(layers.Dense(32, activation="relu", name="dense_3"))
-    model.add(layers.Dropout(rate=0.1))
+    model.add(layers.Dense(32, activation="relu", name="dense_3"))
+    # model.add(layers.Dropout(rate=0.1))
     model.add(
         layers.Dense(output_length, activation=output_activation, name="output_layer")
     )
@@ -85,31 +139,6 @@ def cnn(
 
     # model.compile(optimizer=optimizers.Adam(lr=1e-8, beta_1=0.9, beta_2=0.999,
     #     epsilon=1e-8, decay=0.0001), loss=loss, metrics=metrics)
-
-    # input_dimension     = 2560
-    # output_dimension    = output_length
-    # n_steps, n_length, n_features = 10, 256, 1
-    # lr_super = 0.001
-    # dropout = 0.2
-    # L2 = 0
-    # print(input_x)
-
-    # input_ = keras.Input((None, n_length, n_features))
-    # out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
-    # out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(out)
-    # out = layers.TimeDistributed(layers.Dropout(0.1))(out)
-    # out = layers.TimeDistributed(layers.MaxPooling1D(pool_size=2))(out)
-    # out = layers.TimeDistributed(layers.Flatten())(out)
-    # out = layers.LSTM(128, return_sequences=True)(out)
-    # out = layers.Dropout(0.2)(out)
-    # out = layers.LSTM(64, return_sequences=True)(out)
-    # out = layers.Dropout(0.2)(out)
-    # out = layers.LSTM(32)(out)
-    # out = layers.Dense(32, activation='relu')(out)
-    # output_ = layers.Dense(output_dimension, activation='softmax')(out)
-    # model = Model(inputs=input_, outputs=output_)
-    # op = keras.optimizers.Adam(lr=lr_super)
-    # model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
 
     return model
 
@@ -137,29 +166,19 @@ def dnn(
     set_seed(seed)
 
     model = models.Sequential()
-    model.add(layers.Dense(32, activation="relu", input_dim=input_x))
+    model.add(layers.Dense(16, activation="relu", input_dim=input_x))
     # model.add(layers.Dense(256, activation='relu', input_dim=input_x))
-    model.add(layers.Dense(32, activation="relu"))
-    # model.add(layers.Dense(16, activation='relu'))
+    model.add(layers.Dense(16, activation="relu"))
+    # model.add(layers.Dense(32, activation='relu'))
     # model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(output_length, activation=output_activation))
     model.compile(optimizer="adam", loss=loss, metrics=metrics)
-
-    # model = keras.models.Sequential()
-    # model.add(layers.Dense(512, input_dim=input_x, activation='relu', kernel_regularizer = keras.regularizers.l2(L2)))
-    # model.add(layers.Dense(512, activation='relu', kernel_regularizer = keras.regularizers.l2(L2)))
-    # model.add(layers.Dense(output_length))
-    # model.add(layers.Activation('softmax'))
-
-    # op = keras.optimizers.Adam(lr=lr_super)
-    # model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
-    # model.summary()
 
     return model
 
 
 def lstm(
-    hist_size,
+    window_size,
     n_features,
     n_steps_out=1,
     output_activation="linear",
@@ -169,7 +188,7 @@ def lstm(
     """Define a LSTM model architecture using Keras.
 
     Args:
-        hist_size (int): Number of time steps to include in each sample, i.e.
+        window_size (int): Number of time steps to include in each sample, i.e.
             how much history should be matched with a given target.
         n_features (int): Number of features for each time step, in the input
             data.
@@ -181,12 +200,42 @@ def lstm(
 
     model = models.Sequential()
     model.add(
-        layers.LSTM(15, input_shape=(hist_size, n_features))
+        layers.LSTM(100, input_shape=(window_size, n_features))
     )  # , return_sequences=True))
-    # model.add(layers.Dropout(0.5))
+    model.add(layers.Dropout(0.5))
     # model.add(layers.LSTM(32, activation='relu'))
     # model.add(layers.LSTM(16, activation='relu'))
-    model.add(layers.Dense(10, activation="relu"))
+    model.add(layers.Dense(100, activation="relu"))
+    model.add(layers.Dense(n_steps_out, activation=output_activation))
+    model.compile(optimizer="adam", loss=loss, metrics=metrics)
+
+    return model
+
+def lstm1(
+    window_size,
+    n_features,
+    n_steps_out=1,
+    output_activation="linear",
+    loss="mse",
+    metrics="mse",
+):
+    """Define a LSTM model architecture using Keras.
+
+    Args:
+        window_size (int): Number of time steps to include in each sample, i.e.
+            how much history should be matched with a given target.
+        n_features (int): Number of features for each time step, in the input
+            data.
+
+    Returns:
+        model (Keras model): Model to be trained.
+
+    """
+
+    model = models.Sequential()
+    model.add(
+        layers.LSTM(15, input_shape=(window_size, n_features))
+    )
     model.add(layers.Dense(n_steps_out, activation=output_activation))
     model.compile(optimizer="adam", loss=loss, metrics=metrics)
 

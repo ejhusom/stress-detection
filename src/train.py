@@ -3,42 +3,42 @@
 """Train deep learning model to estimate power from breathing data.
 
 
-Author:   
+Author:
     Erik Johannes Husom
 
-Created:  
+Created:
     2020-09-16  
 
 """
 import sys
-import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import xgboost as xgb
 import yaml
-from joblib import dump, load
+from joblib import dump
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
     QuadraticDiscriminantAnalysis,
 )
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_auc_score
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.svm import SVC, SVR
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.utils import plot_model
 
+import neural_networks as nn
 from config import (
     DATA_PATH,
     MODELS_FILE_PATH,
     MODELS_PATH,
+    NON_DL_METHODS,
     PLOTS_PATH,
     TRAININGLOSS_PLOT_PATH,
 )
-from model import cnn, cnndnn, dnn, lstm, model4, model6
 
 
 def train(filepath):
@@ -53,10 +53,13 @@ def train(filepath):
 
     # Load parameters
     params = yaml.safe_load(open("params.yaml"))["train"]
-    net = params["net"]
+    learning_method = params["learning_method"]
     use_early_stopping = params["early_stopping"]
     patience = params["patience"]
     classification = yaml.safe_load(open("params.yaml"))["clean"]["classification"]
+    onehot_encode_target = yaml.safe_load(open("params.yaml"))["clean"][
+        "onehot_encode_target"
+    ]
 
     output_columns = np.array(
         pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
@@ -65,22 +68,10 @@ def train(filepath):
     n_output_cols = len(output_columns)
 
     # Load training set
-    train = np.load(filepath)
+    train_data = np.load(filepath)
 
-    X_train = train["X"]
-    y_train = train["y"]
-
-    # import seaborn as sns
-    # xx = X_train.reshape(X_train.shape[0], 10240)
-    # xx = np.clip(xx, -5, 5)
-    # ax = sns.heatmap(xx, linewidth=0.5)
-    # plt.imshow(xx, cmap="hot", interpolation='nearest')
-    # plt.colorbar()
-
-    # print(X_train.shape)
-    # plt.plot(X_train[49,:,0])
-    # plt.imshow(x[0,:,:])
-    # plt.show()
+    X_train = train_data["X"]
+    y_train = train_data["y"]
 
     n_features = X_train.shape[-1]
 
@@ -88,7 +79,8 @@ def train(filepath):
     target_size = y_train.shape[-1]
 
     if classification:
-        if len(np.unique(y_train)) > 2:
+        # if len(np.unique(y_train, axis=-1)) > 2:
+        if onehot_encode_target:
             output_activation = "softmax"
             loss = "categorical_crossentropy"
         else:
@@ -105,34 +97,28 @@ def train(filepath):
         monitor_metric = "loss"
 
     # Build model
-    if net == "cnn":
-        print(X_train.shape)
-        # X_train = np.reshape(X_train, (X_train.shape[0], 10, 256, 4))
+    if learning_method == "cnn":
         hist_size = X_train.shape[-2]
-        # model = cnn(hist_size, n_features, output_length=output_length,
-        #         kernel_size=params["kernel_size"],
-        #         output_activation=output_activation, loss=loss, metrics=metrics
-        # )
-        model = model6(256, y_tr_dim=4)
-    elif net == "dnn":
-        model = dnn(
+        model = nn.cnn(
+            hist_size,
+            n_features,
+            output_length=output_length,
+            kernel_size=params["kernel_size"],
+            output_activation=output_activation,
+            loss=loss,
+            metrics=metrics,
+        )
+    elif learning_method == "dnn":
+        model = nn.dnn(
             n_features,
             output_length=output_length,
             output_activation=output_activation,
             loss=loss,
             metrics=metrics,
         )
-    elif net == "dt":
-        # model = DecisionTreeClassifier()
-        # model = RandomForestClassifier(50)
-        # model = xgb.XGBClassifier(n_estimators=300, max_depth=5)
-        # model = xgb.XGBClassifier(n_estimators=800, max_depth=5)
-        # model = LinearDiscriminantAnalysis()
-        model = QuadraticDiscriminantAnalysis()
-        # model = SVC()
-    elif net == "lstm":
+    elif learning_method == "lstm":
         hist_size = X_train.shape[-2]
-        model = lstm(
+        model = nn.lstm(
             hist_size,
             n_features,
             n_steps_out=output_length,
@@ -140,10 +126,54 @@ def train(filepath):
             loss=loss,
             metrics=metrics,
         )
+    elif learning_method == "lstm1":
+        hist_size = X_train.shape[-2]
+        model = nn.lstm1(
+            hist_size,
+            n_features,
+            n_steps_out=output_length,
+            output_activation=output_activation,
+            loss=loss,
+            metrics=metrics,
+        )
+    elif learning_method == "dt":
+        if classification:
+            model = DecisionTreeClassifier()
+        else:
+            model = DecisionTreeRegressor()
+    elif learning_method == "rf":
+        if classification:
+            model = RandomForestClassifier()
+        else:
+            model = RandomForestRegressor()
+    elif learning_method == "xgboost":
+        if classification:
+            model = xgb.XGBClassifier()
+        else:
+            model = xgb.XGBRegressor()
+    elif learning_method == "lda":
+        if classification:
+            model = LinearDiscriminantAnalysis()
+        else:
+            raise ValueError(
+                f"Learning method {learning_method} only works with classification."
+            )
+    elif learning_method == "qda":
+        if classification:
+            model = QuadraticDiscriminantAnalysis()
+        else:
+            raise ValueError(
+                f"Learning method {learning_method} only works with classification."
+            )
+    elif learning_method == "svm":
+        if classification:
+            model = SVC()
+        else:
+            model = SVR()
     else:
-        raise NotImplementedError("Only 'cnn' is implemented.")
+        raise NotImplementedError(f"Learning method {learning_method} not implemented.")
 
-    if net == "dt":
+    if learning_method in NON_DL_METHODS:
         model.fit(X_train, y_train)
         dump(model, MODELS_FILE_PATH)
     else:
@@ -163,7 +193,9 @@ def train(filepath):
                 dpi=96,
             )
         except:
-            print("Failed saving plot of the network architecture.")
+            print(
+                "Failed saving plot of the network architecture, Graphviz must be installed to do that."
+            )
 
         early_stopping = EarlyStopping(
             monitor="val_" + monitor_metric, patience=patience, verbose=4

@@ -1,31 +1,24 @@
 stages:
 
-    preprocess:
-        cmd: python3 src/preprocess.py assets/data/raw
+    profile:
+        cmd: python3 src/profiling.py assets/data/raw
         deps:
         - assets/data/raw
-        - src/preprocess.py
-        outs:
-        - assets/data/preprocessed
-        params:
-        - preprocess.dataset
-        - preprocess.labels
-
-    profile:
-        cmd: python3 src/profiling.py assets/data/preprocessed
-        deps:
-        - assets/data/preprocessed
         - src/profiling.py
         - src/profile.yaml
+        - src/config.py
         outs:
         - assets/profile
+        params:
+        - profile.dataset
 
     clean:
-        cmd: python3 src/clean.py assets/data/preprocessed
+        cmd: python3 src/clean.py assets/data/raw
         deps:
         - assets/data/raw
-        - src/clean.py
         - assets/profile
+        - src/clean.py
+        - src/config.py
         outs:
         - assets/data/cleaned
         - assets/data/output_columns.csv
@@ -44,6 +37,7 @@ stages:
         - assets/data/cleaned
         - assets/data/output_columns.csv
         - src/featurize.py
+        - src/config.py
         outs:
         - assets/data/featurized
         - assets/data/input_columns.csv
@@ -55,18 +49,72 @@ stages:
         - featurize.target_min_correlation_threshold
         - clean.target
 
+    split:
+        cmd: python3 src/split.py assets/data/featurized/
+        deps:
+        - assets/data/featurized
+        - src/split.py
+        - src/config.py
+        outs:
+        - assets/data/split
+        params:
+        - split.train_split
+        - split.shuffle_files
+        - split.calibrate_split
+
+    scale:
+        cmd: python3 src/scale.py assets/data/split/
+        deps:
+        - assets/data/split
+        - assets/data/output_columns.csv
+        - src/scale.py
+        - src/config.py
+        outs:
+        - assets/data/scaled
+        params:
+        - clean.classification
+        - scale.input
+        - scale.output
+
+    sequentialize:
+        cmd: python3 src/sequentialize.py assets/data/scaled/
+        deps:
+        - assets/data/scaled
+        - assets/data/output_columns.csv
+        - src/sequentialize.py
+        - src/preprocess_utils.py
+        - src/config.py
+        outs:
+        - assets/data/sequentialized
+        params:
+        - clean.classification
+        - sequentialize.window_size
+        - sequentialize.target_size
+        - sequentialize.shuffle_samples
+        - train.learning_method
+
+    combine:
+        cmd: python3 src/combine.py assets/data/sequentialized/
+        deps:
+        - assets/data/sequentialized
+        - src/combine.py
+        - src/config.py
+        outs:
+        - assets/data/combined
+
     train:
         cmd: python3 src/train.py assets/data/combined/train.npz
         deps:
         - assets/data/combined
         - assets/data/output_columns.csv
         - src/train.py
-        - src/model.py
+        - src/neural_networks.py
+        - src/config.py
         outs:
         - assets/models
         params:
         - clean.classification
-        - train.net
+        - train.learning_method
         - train.n_epochs
         - train.batch_size
         - train.kernel_size
