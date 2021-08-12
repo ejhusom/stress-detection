@@ -4,8 +4,8 @@ profile:
 clean:
     target: label
     classification: True
-    onehot_encode_target: True
-    combine_files: True
+    onehot_encode_target: False
+    combine_files: False
     percentage_zeros_threshold: 1.0
     correlation_metric: pearson
     input_max_correlation_threshold: 1.0
@@ -19,7 +19,7 @@ featurize:
         # - wrist_temp
         # - wrist_eda
         # - wrist_bvp
-    add_rolling_features: False
+    add_rolling_features: True
     remove_features:
         # - wrist_acc_x
         # - wrist_acc_y
@@ -42,7 +42,7 @@ scale:
 sequentialize:
     window_size: 1
     target_size: 1
-    shuffle_samples: True
+    shuffle_samples: False
 
 train:
     learning_method: lstm1

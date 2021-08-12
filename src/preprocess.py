@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from config import DATA_PREPROCESSED_PATH, DATA_PATH_RAW
+from config import DATA_PATH_RAW
 from preprocess_utils import find_files
 
 def preprocess(dir_path):
@@ -39,14 +39,7 @@ def preprocess(dir_path):
 
     """
 
-    dataset = yaml.safe_load(open("params.yaml"))["profile"]["dataset"]
-
-    if dataset != None:
-        dir_path += "/" + dataset
-
     filepaths = find_files(dir_path, file_extension=".pkl")
-
-    DATA_PREPROCESSED_PATH.mkdir(parents=True, exist_ok=True)
 
     dfs = []
 
@@ -107,9 +100,9 @@ def preprocess(dir_path):
             )
 
         # Remove unusable labels:
-        labels_to_keep = [1, 2, 3]
+        labels_to_keep = [1, 2, 3, 4]
         df = df[df["label"].isin(labels_to_keep)]
-        # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
+        df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
 
         print(f"Saved file {filepath}.")

@@ -33,11 +33,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 from config import DATA_PATH, MODELS_FILE_PATH, MODELS_PATH, TRAININGLOSS_PLOT_PATH
-from model import cnn, lstm, model4, model6
+from neural_networks import cnn, lstm, model4, model6, lstm1
 from preprocess_utils import move_column, split_sequences
 
 pd.options.plotting.backend = "plotly"
-
 
 def preprocess_wesad_data(subject_numbers):
 
@@ -180,7 +179,7 @@ def train():
     np.savez("assets/data/combined/test.npz", X=X_test, y=y_test)
 
     # model = model6(256, y_tr_dim=3)
-    model = lstm(
+    model = lstm1(
         X_train.shape[-2],
         X_train.shape[-1],
         3,
@@ -190,7 +189,7 @@ def train():
     )
 
     model.fit(
-        X_train, y_train, epochs=20, batch_size=64, validation_split=0.2, shuffle=True
+        X_train, y_train, epochs=5, batch_size=64, validation_split=0.2, shuffle=True
     )
 
     model.save(MODELS_FILE_PATH)
