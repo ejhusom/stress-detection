@@ -36,15 +36,15 @@ stages:
       size: 78025630
       nfiles: 2
     - path: src/clean.py
-      md5: 0721e6d3b718e2568165c8b9c6b9e83b
-      size: 6877
+      md5: a8b253e9cd38b49f28876564fd61f284
+      size: 6908
     - path: src/config.py
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
     params:
       params.yaml:
         clean.classification: true
-        clean.combine_files: false
+        clean.combine_files: true
         clean.correlation_metric: pearson
         clean.input_max_correlation_threshold: 1.0
         clean.onehot_encode_target: true
@@ -52,9 +52,9 @@ stages:
         clean.target: label
     outs:
     - path: assets/data/cleaned
-      md5: 71ec521808db525220a3753c328faf3a.dir
-      size: 103685754
-      nfiles: 15
+      md5: 277c277f79a7b7e91789351c1747b526.dir
+      size: 106361734
+      nfiles: 1
     - path: assets/data/output_columns.csv
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
@@ -62,9 +62,9 @@ stages:
     cmd: python3 src/featurize.py assets/data/cleaned/
     deps:
     - path: assets/data/cleaned
-      md5: 71ec521808db525220a3753c328faf3a.dir
-      size: 103685754
-      nfiles: 15
+      md5: 277c277f79a7b7e91789351c1747b526.dir
+      size: 106361734
+      nfiles: 1
     - path: assets/data/output_columns.csv
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
@@ -84,9 +84,9 @@ stages:
         featurize.target_min_correlation_threshold: 0.0
     outs:
     - path: assets/data/featurized
-      md5: a1decbb6bacb89848157a8696031572b.dir
-      size: 152766336
-      nfiles: 15
+      md5: 1e9996e58994f8a85eaad663e67018cf.dir
+      size: 152764544
+      nfiles: 1
     - path: assets/data/input_columns.csv
       md5: 10276d6b0a7ccb086dee057d48b9c1c8
       size: 82
@@ -94,9 +94,9 @@ stages:
     cmd: python3 src/split.py assets/data/featurized/
     deps:
     - path: assets/data/featurized
-      md5: a1decbb6bacb89848157a8696031572b.dir
-      size: 152766336
-      nfiles: 15
+      md5: 1e9996e58994f8a85eaad663e67018cf.dir
+      size: 152764544
+      nfiles: 1
     - path: src/config.py
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
@@ -110,9 +110,9 @@ stages:
         split.train_split: 0.7
     outs:
     - path: assets/data/split
-      md5: 99b813fbb8abf0d0361a9d9a045e5e6c.dir
-      size: 152766336
-      nfiles: 15
+      md5: 2dd42447c03a5593a520a109b1053c8d.dir
+      size: 152764672
+      nfiles: 2
   scale:
     cmd: python3 src/scale.py assets/data/split/
     deps:
@@ -120,9 +120,9 @@ stages:
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
     - path: assets/data/split
-      md5: 99b813fbb8abf0d0361a9d9a045e5e6c.dir
-      size: 152766336
-      nfiles: 15
+      md5: 2dd42447c03a5593a520a109b1053c8d.dir
+      size: 152764672
+      nfiles: 2
     - path: src/config.py
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
@@ -136,9 +136,9 @@ stages:
         scale.output: minmax
     outs:
     - path: assets/data/scaled
-      md5: 0277780179c4c6a44a112f7408b4eb76.dir
-      size: 152771766
-      nfiles: 15
+      md5: 1b630028f6381c9ce0509641990b96ef.dir
+      size: 152765396
+      nfiles: 2
   sequentialize:
     cmd: python3 src/sequentialize.py assets/data/scaled/
     deps:
@@ -146,9 +146,9 @@ stages:
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
     - path: assets/data/scaled
-      md5: 0277780179c4c6a44a112f7408b4eb76.dir
-      size: 152771766
-      nfiles: 15
+      md5: 1b630028f6381c9ce0509641990b96ef.dir
+      size: 152765396
+      nfiles: 2
     - path: src/config.py
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
@@ -167,16 +167,16 @@ stages:
         train.learning_method: lstm1
     outs:
     - path: assets/data/sequentialized
-      md5: e4b60b0523f76fa89b0a936fdfb0f321.dir
-      size: 152771766
-      nfiles: 15
+      md5: beb680a1b019152a15fceea1c71dfb48.dir
+      size: 152765396
+      nfiles: 2
   combine:
     cmd: python3 src/combine.py assets/data/sequentialized/
     deps:
     - path: assets/data/sequentialized
-      md5: e4b60b0523f76fa89b0a936fdfb0f321.dir
-      size: 152771766
-      nfiles: 15
+      md5: beb680a1b019152a15fceea1c71dfb48.dir
+      size: 152765396
+      nfiles: 2
     - path: src/combine.py
       md5: d175bad0793f77c653fed58d9941c567
       size: 1806
@@ -185,14 +185,14 @@ stages:
       size: 1983
     outs:
     - path: assets/data/combined
-      md5: c074593639a069a1ddd91343c5a39e87.dir
+      md5: bab1cf082c7d27fe63d2708f07a7f58c.dir
       size: 152765396
       nfiles: 2
   train:
     cmd: python3 src/train.py assets/data/combined/train.npz
     deps:
     - path: assets/data/combined
-      md5: 69d218592829ba1d924bed4de2e00ce1.dir
+      md5: bab1cf082c7d27fe63d2708f07a7f58c.dir
       size: 152765396
       nfiles: 2
     - path: assets/data/output_columns.csv
@@ -218,7 +218,7 @@ stages:
         train.patience: 5
     outs:
     - path: assets/models
-      md5: 5294e56e694ae5fc8d67a7556c4adfab.dir
+      md5: cc2500080e213273b7fc71cfdcb7085b.dir
       size: 45352
       nfiles: 1
   evaluate:
@@ -226,23 +226,23 @@ stages:
       assets/data/combined/test.npz assets/data/combined/calibrate.npz
     deps:
     - path: assets/data/combined/test.npz
-      md5: 9f49c95bbe399a13fa453be35ff3eca6
+      md5: ab4315886e56cac6a53379985a4ae270
       size: 45829858
     - path: assets/data/output_columns.csv
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
     - path: assets/models/model.h5
-      md5: e7f0e546e8dc498c67917f30821cd6d2
-      size: 53872
+      md5: ec43c5698cbca9b50135800a22a33b50
+      size: 45352
     - path: src/evaluate.py
-      md5: 0f1ee87bddbbe176aafa594d24b79d98
-      size: 13962
+      md5: 93c76510c17245ae0cc98b8f0d67d07a
+      size: 13939
     params:
       params.yaml:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: 36bbb752115ddfb51289461d8dba09f1
+      md5: cce5296133da0a99c2995ab57f7fa960
       size: 32
   restructure:
     cmd: python3 src/preprocess.py assets/data/raw/WESAD/

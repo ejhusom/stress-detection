@@ -42,7 +42,9 @@ def clean(dir_path):
 
     # If no name of data set is given, all files present in 'assets/data/raw'
     # will be used.
-    if dataset is not None:
+    if dataset is None:
+        dataset = "data"
+    else:
         dir_path += "/" + dataset
 
     filepaths = find_files(dir_path, file_extension=".csv")
