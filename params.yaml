@@ -4,7 +4,7 @@ profile:
 clean:
     target: label
     classification: True
-    onehot_encode_target: True
+    onehot_encode_target: False
     combine_files: False
     percentage_zeros_threshold: 1.0
     correlation_metric: pearson
@@ -21,13 +21,13 @@ featurize:
         # - wrist_bvp
     add_rolling_features: True
     remove_features:
-        # - wrist_acc_x
-        # - wrist_acc_y
-        # - wrist_acc_z
-        # - wrist_temp
-        # - wrist_eda
-        # - wrist_bvp
-    rolling_window_size: 512
+        - wrist_acc_x
+        - wrist_acc_y
+        - wrist_acc_z
+        - wrist_temp
+        - wrist_eda
+        - wrist_bvp
+    rolling_window_size: 256
     target_min_correlation_threshold: 0.0
 
 split:
@@ -45,11 +45,11 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    learning_method: cnn
-    n_epochs: 5
+    learning_method: rf
+    n_epochs: 500
     batch_size: 128
-    kernel_size: 9
-    early_stopping: False
-    patience: 5
+    kernel_size: 3
+    early_stopping: True
+    patience: 40
 
 evaluate:
