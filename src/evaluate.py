@@ -35,7 +35,7 @@ from nonconformist.base import RegressorAdapter
 from nonconformist.nc import RegressorNc
 
 from config import METRICS_FILE_PATH, PREDICTIONS_PATH, PREDICTIONS_FILE_PATH, PLOTS_PATH, PREDICTION_PLOT_PATH, DATA_PATH, INTERVALS_PLOT_PATH
-from model import cnn, dnn, lstm, cnndnn
+# from model import cnn, dnn, lstm, cnndnn
 
 
 # class MyCustomModel(RegressorMixin):
@@ -92,7 +92,7 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
     test = np.load(test_filepath)
     X_test = test["X"]
-    X_test = np.reshape(X_test, (X_test.shape[0], 10, 256, 4))
+    X_test = np.reshape(X_test, (X_test.shape[0], 10, 256, 6))
     y_test = test["y"]
 
     # pandas data frame to store predictions and ground truth.
@@ -186,8 +186,8 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         if onehot_encode_target:
             y_test = np.argmax(y_test, axis=-1)
 
-        y_test = y_test.reshape(-1)
-        y_pred = y_pred.reshape(-1)
+        # y_test = y_test.reshape(-1)
+        # y_pred = y_pred.reshape(-1)
 
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")

@@ -169,11 +169,11 @@ def lstm(hist_size,
     """
 
     model = models.Sequential()
-    model.add(layers.LSTM(100, input_shape=(hist_size, n_features)))#, return_sequences=True))
-    model.add(layers.Dropout(0.5))
+    model.add(layers.LSTM(15, input_shape=(hist_size, n_features)))#, return_sequences=True))
+    # model.add(layers.Dropout(0.5))
     # model.add(layers.LSTM(32, activation='relu'))
     # model.add(layers.LSTM(16, activation='relu'))
-    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(10, activation='relu'))
     model.add(layers.Dense(n_steps_out, activation=output_activation))
     model.compile(optimizer='adam', loss=loss, metrics=metrics)
 
@@ -235,7 +235,7 @@ def cnndnn(input_x, input_y, n_forecast_hours, n_steps_out=1):
 def model6(x_tr_feature_dim, y_tr_dim, lr_super=0.001, hidden_nodes=512, dropout=0.2, L2=0):
     input_dimension     = x_tr_feature_dim
     output_dimension    = y_tr_dim
-    n_steps, n_length, n_features = 10, 256, 4
+    n_steps, n_length, n_features = 10, 256, 6
     
     input_ = keras.Input((None, n_length, n_features))
     out = layers.TimeDistributed(layers.Conv1D(filters = 64, kernel_size = 3, strides = 1, activation='relu'))(input_)
@@ -249,9 +249,11 @@ def model6(x_tr_feature_dim, y_tr_dim, lr_super=0.001, hidden_nodes=512, dropout
     out = layers.Dropout(0.2)(out)
     out = layers.LSTM(32)(out)
     out = layers.Dense(32, activation='relu')(out)
+    # output_ = layers.Dense(output_dimension, activation='sigmoid')(out)
     output_ = layers.Dense(output_dimension, activation='softmax')(out)
     model = Model(inputs=input_, outputs=output_)
     op = keras.optimizers.Adam(lr=lr_super)
+    # model.compile(loss='binary_crossentropy', optimizer=op, metrics=['accuracy'])
     model.compile(loss='categorical_crossentropy', optimizer=op, metrics=['accuracy'])
     model.summary()
     return  model

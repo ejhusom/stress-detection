@@ -32,12 +32,12 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH
-from model import cnn, model6, model4
+from model import cnn, model6, model4, lstm
 from preprocess_utils import split_sequences, move_column
 
 pd.options.plotting.backend = "plotly"
 
-def read_wesad_data(subject_numbers):
+def preprocess_wesad_data(subject_numbers):
 
     dfs = []
 
@@ -85,19 +85,20 @@ def read_wesad_data(subject_numbers):
         # df["wrist_bvp"] = reindex_data(wrist["BVP"].reshape(-1),
         #         wrist_bvp_timestamps, new_timestamps)
 
-        # df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
-        #         wrist_eda_timestamps, new_timestamps)
+        df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
+                wrist_eda_timestamps, new_timestamps)
 
-        # df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
-        #         wrist_eda_timestamps, new_timestamps)
+        df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
+                wrist_eda_timestamps, new_timestamps)
 
         for i, axis in enumerate(["x", "y", "z"]):
             df[f"wrist_acc_{axis}"] = reindex_data(wrist["ACC"][:,i],
                     wrist_acc_timestamps, new_timestamps)
 
         # Remove unusable labels:
-        labels_to_ignore = [0,5,6,7]
+        labels_to_ignore = [0,4,5,6,7]
         df = df[~df["label"].isin(labels_to_ignore)]
+        # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
 
         print(f"Saved subject number {subject_number}.")
@@ -126,7 +127,7 @@ def read_wesad_data(subject_numbers):
     # fig.write_html("label.html")
     # print(df)
 
-    X, y = split_sequences(np.array(df), 2560)
+    X, y = split_sequences(np.array(df), 1)
     # X = np.array(df.iloc[:,1:])
     # y = np.array(df.iloc[:,0])
 
@@ -144,7 +145,7 @@ def train():
     # plt.imshow(xx, cmap="hot", interpolation='nearest')
     # plt.colorbar()
 
-    # print(X.shape)
+    print(X.shape)
     # plt.plot(X[49,:,0])
     # plt.imshow(x[0,:,:])
     # plt.show()
@@ -158,7 +159,7 @@ def train():
     # plt.show()
     # X = X.flatten()
 
-    X = np.reshape(X, (X.shape[0], 10, 256, 4))
+    # X = np.reshape(X, (X.shape[0], 10, 256, 6))
 
     # import matplotlib.pyplot as plt
     # plt.plot(X[0,:,0])
@@ -168,20 +169,21 @@ def train():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3,
             random_state=5, shuffle=True)
 
-    y_train = tf.keras.utils.to_categorical(y_train, num_classes=4)
-    y_test = tf.keras.utils.to_categorical(y_test, num_classes=4)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes=3)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes=3)
 
     np.savez("assets/data/combined/test.npz", X=X_test, y=y_test)
 
+    # model = model6(256, y_tr_dim=3)
+    model = lstm(
+            X_train.shape[-2], 
+            X_train.shape[-1],
+            3,
+            output_activation="softmax", loss="categorical_crossentropy",
+            metrics=["accuracy"]
+    )
 
-    model = model6(256, y_tr_dim=4)
-            # kernel_size=5,
-            # output_activation="softmax", loss="categorical_crossentropy",
-            # metrics=["accuracy"]
-    # )
-
-
-    model.fit(X_train, y_train, epochs=100, batch_size=64,
+    model.fit(X_train, y_train, epochs=20, batch_size=64,
             validation_split=0.2, shuffle=True)
 
 
@@ -216,9 +218,6 @@ if __name__ == '__main__':
     subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
     # subject_numbers = [2,3,4,5]
     # subject_numbers = [2]
-    read_wesad_data(subject_numbers)
-
-    # for s in subject_numbers:
-    #     read_wesad_data(s)
+    preprocess_wesad_data(subject_numbers)
 
     train()
