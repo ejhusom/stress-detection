@@ -171,7 +171,7 @@ stages:
     cmd: python3 src/train.py assets/data/combined/train.npz
     deps:
     - path: assets/data/combined
-      md5: bcb98e9e84c8c8d915349ec84aa4a2dd.dir
+      md5: 95e8665811a4327fcb08ef4b743ad445.dir
       size: 152765396
       nfiles: 2
     - path: assets/data/output_columns.csv
@@ -194,7 +194,7 @@ stages:
         train.patience: 5
     outs:
     - path: assets/models
-      md5: 9b2467cb40e4ad46548e4f148ac5370d.dir
+      md5: 1a91a37f559f556a4cfe4029d6e84c7e.dir
       size: 53872
       nfiles: 1
   evaluate:
@@ -202,13 +202,13 @@ stages:
       assets/data/combined/test.npz assets/data/combined/calibrate.npz
     deps:
     - path: assets/data/combined/test.npz
-      md5: 132b5aa735a3bf4f79d1eb43c8e5777f
+      md5: 9f49c95bbe399a13fa453be35ff3eca6
       size: 45829858
     - path: assets/data/output_columns.csv
       md5: 9494bbae181385b0009aabcd72afa849
       size: 33
     - path: assets/models/model.h5
-      md5: 9289578c6d30dcc4ede0ad165bcdfbca
+      md5: 1ae702e10c34447acf115a4978cfe0c7
       size: 53872
     - path: src/evaluate.py
       md5: d1f1efd5cbd12cdf1ce06464b53f27ee
@@ -218,5 +218,5 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: 89b2d04a2566b75380f9077230289766
-      size: 32
+      md5: 4d1733b6f7908fac03f815f24463226b
+      size: 31
