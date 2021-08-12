@@ -167,7 +167,7 @@ def train():
 
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3,
-            random_state=5, shuffle=True)
+            random_state=5, shuffle=False)
 
     y_train = tf.keras.utils.to_categorical(y_train, num_classes=3)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes=3)
@@ -218,6 +218,6 @@ if __name__ == '__main__':
     subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
     # subject_numbers = [2,3,4,5]
     # subject_numbers = [2]
-    preprocess_wesad_data(subject_numbers)
+    # preprocess_wesad_data(subject_numbers)
 
     train()
