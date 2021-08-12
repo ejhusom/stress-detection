@@ -4,7 +4,7 @@ profile:
 clean:
     target: label
     classification: True
-    onehot_encode_target: False
+    onehot_encode_target: True
     combine_files: False
     percentage_zeros_threshold: 1.0
     correlation_metric: pearson
@@ -31,7 +31,7 @@ featurize:
     target_min_correlation_threshold: 0.0
 
 split:
-    train_split: 0.7
+    train_split: 0.5
     shuffle_files: False
     calibrate_split: 0.0
 
@@ -45,7 +45,7 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    learning_method: lstm1
+    learning_method: cnn
     n_epochs: 5
     batch_size: 128
     kernel_size: 9
