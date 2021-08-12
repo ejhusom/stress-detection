@@ -20,18 +20,17 @@ Notes:
     5/6/7: Should be ignored
 
 """
+import yaml
+import sys
+import os
 import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
 import plotly.graph_objects as go
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
 
 from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH, DATA_PREPROCESSED_PATH, DATA_PATH_RAW
-from model import cnn, model6, model4, lstm
 from preprocess_utils import split_sequences, move_column, find_files
 
 pd.options.plotting.backend = "plotly"
@@ -44,6 +43,11 @@ def preprocess(dir_path):
 
     """
 
+    dataset = yaml.safe_load(open("params.yaml"))["preprocess"]["dataset"]
+
+    if dataset != None:
+        dir_path += "/" + dataset
+
     filepaths = find_files(dir_path, file_extension=".pkl")
 
     DATA_PREPROCESSED_PATH.mkdir(parents=True, exist_ok=True)
@@ -52,8 +56,6 @@ def preprocess(dir_path):
 
     # for subject_number in subject_numbers:
     for filepath in filepaths:
-
-        # data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
 
         with open(filepath, 'rb') as f:
                 data = pickle.load(f, encoding="latin1")
@@ -106,34 +108,18 @@ def preprocess(dir_path):
                     wrist_acc_timestamps, new_timestamps)
 
         # Remove unusable labels:
-        labels_to_ignore = [0,4,5,6,7]
-        df = df[~df["label"].isin(labels_to_ignore)]
+        labels_to_keep = [1,2,3]
+        df = df[df["label"].isin(labels_to_keep)]
         # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
 
-        print(f"Saved subject number {subject_number}.")
+        print(f"Saved file {filepath}.")
 
-        df.to_csv(f"assets/data/raw/wesad_csv/{subject_number}.csv")
         df.to_csv(
-                DATA_PREPROCESSED_PATH / (os.path.basename(filepath).replace(".",
-                "-preprocessed."))
+                DATA_PREPROCESSED_PATH /
+                (os.path.basename(filepath).replace(".pkl",
+                "-preprocessed.csv"))
         )
-        # dfs.append(df)
-
-    # df = pd.concat(dfs, ignore_index=True)
-
-
-    # label = np.array(df["label"].copy())
-
-    # del df["label"]
-    # df = StandardScaler().fit_transform(np.array(df))
-    # df = pd.DataFrame(df)
-    # df["label"] = label
-
-    # df = move_column(df, "label", 0)
-    # X, y = split_sequences(np.array(df), 1)
-
-    # np.savez("assets/data/wesad.npz", X=X, y=y)
 
 
 def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):

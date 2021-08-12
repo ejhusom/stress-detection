@@ -25,15 +25,6 @@ def profile(dir_path):
 
     """
 
-    dataset = yaml.safe_load(open("params.yaml"))["profile"]["dataset"]
-    """Name of data set, which must be the name of subfolder of
-    'assets/data/raw', in where to look for data.""" 
-
-    # If no name of data set is given, all files present in 'assets/data/raw'
-    # will be used.
-    if dataset != None:
-        dir_path += "/" + dataset
-
     filepaths = find_files(dir_path, file_extension=".csv")
 
     dfs = []

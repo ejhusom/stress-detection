@@ -1,18 +1,27 @@
 stages:
 
-    profile:
-        cmd: python3 src/profiling.py assets/data/raw/
+    preprocess:
+        cmd: python3 src/preprocess.py assets/data/raw
         deps:
         - assets/data/raw
+        - src/preprocess.py
+        outs:
+        - assets/data/preprocessed
+        params:
+        - preprocess.dataset
+        - preprocess.labels
+
+    profile:
+        cmd: python3 src/profiling.py assets/data/preprocessed
+        deps:
+        - assets/data/preprocessed
         - src/profiling.py
         - src/profile.yaml
         outs:
         - assets/profile
-        params:
-        - profile.dataset
 
     clean:
-        cmd: python3 src/clean.py assets/data/raw/
+        cmd: python3 src/clean.py assets/data/preprocessed
         deps:
         - assets/data/raw
         - src/clean.py
@@ -45,55 +54,6 @@ stages:
         - featurize.rolling_window_size
         - featurize.target_min_correlation_threshold
         - clean.target
-
-    split:
-        cmd: python3 src/split.py assets/data/featurized/
-        deps:
-        - assets/data/featurized
-        - src/split.py
-        outs:
-        - assets/data/split
-        params:
-        - split.train_split
-        - split.shuffle_files
-        - split.shuffle_samples
-        - split.calibrate_split
-
-    scale:
-        cmd: python3 src/scale.py assets/data/split/
-        deps:
-        - assets/data/split
-        - assets/data/output_columns.csv
-        - src/scale.py
-        outs:
-        - assets/data/scaled
-        params:
-        - clean.classification
-        - scale.input
-        - scale.output
-
-    sequentialize:
-        cmd: python3 src/sequentialize.py assets/data/scaled/
-        deps:
-        - assets/data/scaled
-        - assets/data/output_columns.csv
-        - src/sequentialize.py
-        - src/preprocess_utils.py
-        outs:
-        - assets/data/sequentialized
-        params:
-        - clean.classification
-        - sequentialize.hist_size
-        - sequentialize.target_size
-        - train.net
-
-    combine:
-        cmd: python3 src/combine.py assets/data/sequentialized/
-        deps:
-        - assets/data/sequentialized
-        - src/combine.py
-        outs:
-        - assets/data/combined
 
     train:
         cmd: python3 src/train.py assets/data/combined/train.npz

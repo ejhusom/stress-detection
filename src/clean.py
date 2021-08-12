@@ -36,17 +36,12 @@ def clean(dir_path):
     """
 
     # Load parameters
-    dataset = yaml.safe_load(open("params.yaml"))["profile"]["dataset"]
+    dataset = yaml.safe_load(open("params.yaml"))["preprocess"]["dataset"]
     params = yaml.safe_load(open("params.yaml"))["clean"]
     combine_files = params["combine_files"]
     target = params["target"]
     classification = params["classification"]
     onehot_encode_target = params["onehot_encode_target"]
-
-    # If no name of data set is given, all files present in 'assets/data/raw'
-    # will be used.
-    if dataset != None:
-        dir_path += "/" + dataset
 
     filepaths = find_files(dir_path, file_extension=".csv")
 

@@ -1,40 +1,37 @@
 schema: '2.0'
 stages:
   profile:
-    cmd: python3 src/profiling.py assets/data/raw/
+    cmd: python3 src/profiling.py assets/data/preprocessed
     deps:
-    - path: assets/data/raw
-      md5: 2462bebe6abe6ad3008d1396d742a602.dir
-      size: 13922823646
-      nfiles: 31
+    - path: assets/data/preprocessed
+      md5: f24bba93b556094f59ccbee4f9f1d626.dir
+      size: 95198572
+      nfiles: 15
     - path: src/profile.yaml
       md5: cc6d00e2d406bfc3dd079e37e6615497
       size: 3915
     - path: src/profiling.py
-      md5: c415ea825e74495b5532a7730b702c1a
-      size: 1716
-    params:
-      params.yaml:
-        profile.dataset: wesad_csv
+      md5: bf1749dc952c8bd257b8a70c1283551e
+      size: 1368
     outs:
     - path: assets/profile
-      md5: 63b8105dc27ae6dee9cf4c303f2f06f4.dir
-      size: 78089271
+      md5: 67883a3fa3f93d6376c166c99b0751e5.dir
+      size: 78089352
       nfiles: 2
   clean:
-    cmd: python3 src/clean.py assets/data/raw/
+    cmd: python3 src/clean.py assets/data/preprocessed
     deps:
     - path: assets/data/raw
-      md5: 2462bebe6abe6ad3008d1396d742a602.dir
-      size: 13922823646
-      nfiles: 31
+      md5: df69e644ab7035580f184f7143c1072b.dir
+      size: 13827625074
+      nfiles: 16
     - path: assets/profile
-      md5: 63b8105dc27ae6dee9cf4c303f2f06f4.dir
-      size: 78089271
+      md5: 67883a3fa3f93d6376c166c99b0751e5.dir
+      size: 78089352
       nfiles: 2
     - path: src/clean.py
-      md5: 7db1b079aab25aeea93581778b2290e1
-      size: 6510
+      md5: d493c1f7f9b3445a90f4dc3dd26c6c7d
+      size: 6356
     params:
       params.yaml:
         clean.classification: true
@@ -46,7 +43,7 @@ stages:
         clean.target: label
     outs:
     - path: assets/data/cleaned
-      md5: 3a1f0b47ce7ddca531c401d0a7327143.dir
+      md5: 1d1a0ecb3317806b25513bde86857e9a.dir
       size: 106361734
       nfiles: 1
     - path: assets/data/output_columns.csv
@@ -56,7 +53,7 @@ stages:
     cmd: python3 src/featurize.py assets/data/cleaned/
     deps:
     - path: assets/data/cleaned
-      md5: 3a1f0b47ce7ddca531c401d0a7327143.dir
+      md5: 1d1a0ecb3317806b25513bde86857e9a.dir
       size: 106361734
       nfiles: 1
     - path: assets/data/output_columns.csv
@@ -75,7 +72,7 @@ stages:
         featurize.target_min_correlation_threshold: 0.0
     outs:
     - path: assets/data/featurized
-      md5: e1742e3a01ad0b4febd01ad0429f8de7.dir
+      md5: c7b8783409a8d70611c9ce4b9070ede9.dir
       size: 106361734
       nfiles: 1
     - path: assets/data/input_columns.csv
@@ -220,3 +217,27 @@ stages:
     - path: assets/metrics/metrics.json
       md5: 4d1733b6f7908fac03f815f24463226b
       size: 31
+  restructure:
+    cmd: python3 src/preprocess.py assets/data/raw/WESAD/
+  preprocess:
+    cmd: python3 src/preprocess.py assets/data/raw
+    deps:
+    - path: assets/data/raw
+      md5: df69e644ab7035580f184f7143c1072b.dir
+      size: 13827625074
+      nfiles: 16
+    - path: src/preprocess.py
+      md5: db9bf6cfcf249f326102cd27bcdc5cd1
+      size: 4387
+    params:
+      params.yaml:
+        preprocess.dataset: WESAD
+        preprocess.labels:
+        - 1
+        - 2
+        - 3
+    outs:
+    - path: assets/data/preprocessed
+      md5: f24bba93b556094f59ccbee4f9f1d626.dir
+      size: 95198572
+      nfiles: 15

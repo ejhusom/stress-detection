@@ -1,5 +1,11 @@
+preprocess:
+    dataset: WESAD
+    labels:
+        - 1
+        - 2
+        - 3
+
 profile:
-    dataset: wesad_csv
 
 clean:
     target: label
