@@ -30,23 +30,32 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH
+from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH, DATA_PREPROCESSED_PATH, DATA_PATH_RAW
 from model import cnn, model6, model4, lstm
 from preprocess_utils import split_sequences, move_column, find_files
 
 pd.options.plotting.backend = "plotly"
 
-def preprocess_wesad_data(subject_numbers):
+def preprocess(dir_path):
+    """Preprocess WESAD data.
 
-    filepaths = find_files(dir_path, file_extension=".csv")
+    Args:
+        dir_path (str): Path to directory containing files.
+
+    """
+
+    filepaths = find_files(dir_path, file_extension=".pkl")
+
+    DATA_PREPROCESSED_PATH.mkdir(parents=True, exist_ok=True)
 
     dfs = []
 
-    for subject_number in subject_numbers:
+    # for subject_number in subject_numbers:
+    for filepath in filepaths:
 
-        data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
+        # data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
 
-        with open(data_file, 'rb') as f:
+        with open(filepath, 'rb') as f:
                 data = pickle.load(f, encoding="latin1")
 
         label = data["label"]
@@ -105,35 +114,26 @@ def preprocess_wesad_data(subject_numbers):
         print(f"Saved subject number {subject_number}.")
 
         df.to_csv(f"assets/data/raw/wesad_csv/{subject_number}.csv")
-        dfs.append(df)
+        df.to_csv(
+                DATA_PREPROCESSED_PATH / (os.path.basename(filepath).replace(".",
+                "-preprocessed."))
+        )
+        # dfs.append(df)
 
-    df = pd.concat(dfs, ignore_index=True)
+    # df = pd.concat(dfs, ignore_index=True)
 
 
-    label = np.array(df["label"].copy())
+    # label = np.array(df["label"].copy())
 
-    del df["label"]
-    df = StandardScaler().fit_transform(np.array(df))
-    df = pd.DataFrame(df)
-    df["label"] = label
+    # del df["label"]
+    # df = StandardScaler().fit_transform(np.array(df))
+    # df = pd.DataFrame(df)
+    # df["label"] = label
 
-    df = move_column(df, "label", 0)
+    # df = move_column(df, "label", 0)
+    # X, y = split_sequences(np.array(df), 1)
 
-    # df.index.name = "time"
-
-    # fig = df.loc[0:5,:].plot()
-    # fig.write_html("plot2.html")
-
-    # fig = df["label"].plot()
-    # fig.write_html("label.html")
-    # print(df)
-
-    X, y = split_sequences(np.array(df), 1)
-    # X = np.array(df.iloc[:,1:])
-    # y = np.array(df.iloc[:,0])
-
-    # print(y)
-    np.savez("assets/data/wesad.npz", X=X, y=y)
+    # np.savez("assets/data/wesad.npz", X=X, y=y)
 
 
 def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
@@ -160,10 +160,5 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
     return df
 
 if __name__ == '__main__': 
-
-    subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
-    # subject_numbers = [2,3,4,5]
-    # subject_numbers = [2]
-    preprocess_wesad_data(subject_numbers)
 
     preprocess(sys.argv[1])

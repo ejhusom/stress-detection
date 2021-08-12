@@ -6,7 +6,7 @@ clean:
     classification: True
     onehot_encode_target: True
     combine_files: True
-    percentage_zeros_threshold: 0.5
+    percentage_zeros_threshold: 1.0
     correlation_metric: pearson
     input_max_correlation_threshold: 1.0
 
@@ -41,15 +41,15 @@ scale:
     output: minmax
 
 sequentialize:
-    hist_size: 2560
+    hist_size: 1
     target_size: 1
 
 train:
-    net: cnn
-    n_epochs: 100
+    net: lstm
+    n_epochs: 10
     batch_size: 128
     kernel_size: 9
-    early_stopping: True
-    patience: 30
+    early_stopping: False
+    patience: 5
 
 evaluate:

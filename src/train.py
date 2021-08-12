@@ -99,7 +99,7 @@ def train(filepath):
     # Build model
     if net == "cnn":
         print(X_train.shape)
-        X_train = np.reshape(X_train, (X_train.shape[0], 10, 256, 4))
+        # X_train = np.reshape(X_train, (X_train.shape[0], 10, 256, 4))
         hist_size = X_train.shape[-2]
         # model = cnn(hist_size, n_features, output_length=output_length,
         #         kernel_size=params["kernel_size"],

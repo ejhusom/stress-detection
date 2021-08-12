@@ -26,6 +26,9 @@ DATA_PATH = ASSETS_PATH / "data"
 DATA_PATH_RAW = DATA_PATH / "raw"
 """Path to raw data."""
 
+DATA_PREPROCESSED_PATH = DATA_PATH / "preprocessed"
+"""Path to preprocessed data."""
+
 DATA_FEATURIZED_PATH = DATA_PATH / "featurized"
 """Path to data that is has added features."""
 
