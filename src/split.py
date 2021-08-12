@@ -38,8 +38,6 @@ def split(dir_path):
 
     filepaths = find_files(dir_path, file_extension=".csv")
 
-
-
     # Handle special case where there is only one workout file.
     if isinstance(filepaths, str) or len(filepaths) == 1:
         filepath = filepaths[0]
@@ -64,7 +62,7 @@ def split(dir_path):
         # # plt.colorbar()
         # plt.show()
         # return 0
-        
+
         train_size = int(len(df) * params["train_split"])
 
         # This is used when using conformal predictors.
@@ -81,8 +79,8 @@ def split(dir_path):
             df_test = df.iloc[train_size:]
         else:
             df_train = df.iloc[:train_size]
-            df_calibrate = df.iloc[train_size:train_size + calibrate_size]
-            df_test = df.iloc[train_size + calibrate_size:]
+            df_calibrate = df.iloc[train_size : train_size + calibrate_size]
+            df_test = df.iloc[train_size + calibrate_size :]
 
         df_train.to_csv(
             DATA_SPLIT_PATH
@@ -90,8 +88,7 @@ def split(dir_path):
         )
 
         df_test.to_csv(
-            DATA_SPLIT_PATH
-            / (os.path.basename(filepath).replace("featurized", "test"))
+            DATA_SPLIT_PATH / (os.path.basename(filepath).replace("featurized", "test"))
         )
 
         if params["calibrate_split"] != 0:
@@ -118,8 +115,8 @@ def split(dir_path):
             test_files = filepaths[file_split:]
         else:
             training_files = filepaths[:file_split]
-            calibrate_files = filepaths[file_split:file_split + file_split_calibrate]
-            test_files = filepaths[file_split + file_split_calibrate:]
+            calibrate_files = filepaths[file_split : file_split + file_split_calibrate]
+            test_files = filepaths[file_split + file_split_calibrate :]
 
         for filepath in filepaths:
 
@@ -145,10 +142,8 @@ def split(dir_path):
                 )
 
 
-
 if __name__ == "__main__":
 
     np.random.seed(2029)
 
     split(sys.argv[1])
-

@@ -20,8 +20,12 @@ import pandas as pd
 import yaml
 
 from config import DATA_PATH, DATA_SEQUENTIALIZED_PATH
-from preprocess_utils import flatten_sequentialized, read_csv
-from preprocess_utils import find_files, split_sequences
+from preprocess_utils import (
+    find_files,
+    flatten_sequentialized,
+    read_csv,
+    split_sequences,
+)
 
 
 def sequentialize(dir_path):
@@ -45,7 +49,7 @@ def sequentialize(dir_path):
         raise ValueError("target_size cannot be larger than hist_size.")
 
     output_columns = np.array(
-            pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
+        pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
     ).reshape(-1)
 
     n_output_cols = len(output_columns)
@@ -61,8 +65,9 @@ def sequentialize(dir_path):
         data = np.hstack((y, X))
 
         # Split into sequences
-        X, y = split_sequences(data, hist_size, target_size=target_size,
-                n_target_columns=n_output_cols)
+        X, y = split_sequences(
+            data, hist_size, target_size=target_size, n_target_columns=n_output_cols
+        )
 
         if net == "dnn" or net == "dt":
             X = flatten_sequentialized(X)
@@ -70,11 +75,7 @@ def sequentialize(dir_path):
         # Save X and y into a binary file
         np.savez(
             DATA_SEQUENTIALIZED_PATH
-            / (
-                os.path.basename(filepath).replace(
-                    "scaled.csv", "sequentialized.npz"
-                )
-            ),
+            / (os.path.basename(filepath).replace("scaled.csv", "sequentialized.npz")),
             X=X,
             y=y,
         )

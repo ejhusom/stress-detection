@@ -13,7 +13,6 @@ Created:  2020-09-16
 
 from pathlib import Path
 
-
 ASSETS_PATH = Path("./assets")
 """Path to all assets of project."""
 

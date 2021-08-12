@@ -13,28 +13,38 @@ import os
 import shutil
 import sys
 
-from joblib import dump, load
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import seaborn as sn
 import shap
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
-from sklearn.base import RegressorMixin
-from sklearn.neighbors import KNeighborsRegressor
-from tensorflow.keras import metrics
-from tensorflow.keras import models
 import yaml
-
-from nonconformist.cp import IcpRegressor
-from nonconformist.nc import NcFactory, AbsErrorErrFunc
+from joblib import dump, load
 from nonconformist.base import RegressorAdapter
-from nonconformist.nc import RegressorNc
+from nonconformist.cp import IcpRegressor
+from nonconformist.nc import AbsErrorErrFunc, NcFactory, RegressorNc
+from plotly.subplots import make_subplots
+from sklearn.base import RegressorMixin
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    mean_squared_error,
+    r2_score,
+)
+from sklearn.neighbors import KNeighborsRegressor
+from tensorflow.keras import metrics, models
 
-from config import METRICS_FILE_PATH, PREDICTIONS_PATH, PREDICTIONS_FILE_PATH, PLOTS_PATH, PREDICTION_PLOT_PATH, DATA_PATH, INTERVALS_PLOT_PATH
+from config import (
+    DATA_PATH,
+    INTERVALS_PLOT_PATH,
+    METRICS_FILE_PATH,
+    PLOTS_PATH,
+    PREDICTION_PLOT_PATH,
+    PREDICTIONS_FILE_PATH,
+    PREDICTIONS_PATH,
+)
+
 # from model import cnn, dnn, lstm, cnndnn
 
 
@@ -42,8 +52,8 @@ from config import METRICS_FILE_PATH, PREDICTIONS_PATH, PREDICTIONS_FILE_PATH, P
 class MyCustomModel(RegressorAdapter):
     """Implement custom sklearn model to use with the nonconformist library.
 
-        Args:
-            model_filepath (str): Path to ALREADY TRAINED model.
+    Args:
+        model_filepath (str): Path to ALREADY TRAINED model.
 
     """
 
@@ -87,7 +97,9 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
     params_train = yaml.safe_load(open("params.yaml"))["train"]
     params_split = yaml.safe_load(open("params.yaml"))["split"]
     classification = yaml.safe_load(open("params.yaml"))["clean"]["classification"]
-    onehot_encode_target = yaml.safe_load(open("params.yaml"))["clean"]["onehot_encode_target"]
+    onehot_encode_target = yaml.safe_load(open("params.yaml"))["clean"][
+        "onehot_encode_target"
+    ]
     net = params_train["net"]
 
     test = np.load(test_filepath)
@@ -105,11 +117,15 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         # mycustommodel = MyCustomModel(model_filepath)
         mycustommodel = MyCustomModel(trained_model)
 
-        m = cnn(X_test.shape[-2], X_test.shape[-1], output_length=1,
-                kernel_size=params_train["kernel_size"]
+        m = cnn(
+            X_test.shape[-2],
+            X_test.shape[-1],
+            output_length=1,
+            kernel_size=params_train["kernel_size"],
         )
 
-        nc = RegressorNc(mycustommodel,
+        nc = RegressorNc(
+            mycustommodel,
             err_func=AbsErrorErrFunc(),  # non-conformity function
             # normalizer_model=KNeighborsRegressor(n_neighbors=15)  # normalizer
             # normalizer=m
@@ -155,12 +171,18 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         y_pred = y_pred.reshape((y_pred.shape[0], 1))
 
         # Build data frame with predictions.
-        my_results = list(zip(np.reshape(y_test, (y_test.shape[0],)),
-                              np.reshape(y_pred, (y_pred.shape[0],)), 
-                              predictions[:, 0], predictions[:, 1]))
+        my_results = list(
+            zip(
+                np.reshape(y_test, (y_test.shape[0],)),
+                np.reshape(y_pred, (y_pred.shape[0],)),
+                predictions[:, 0],
+                predictions[:, 1],
+            )
+        )
 
-        df_predictions = pd.DataFrame(my_results, 
-                columns=['ground_truth', 'predicted', 'lower_bound', 'upper_bound']
+        df_predictions = pd.DataFrame(
+            my_results,
+            columns=["ground_truth", "predicted", "lower_bound", "upper_bound"],
         )
 
         save_predictions(df_predictions)
@@ -192,8 +214,7 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")
 
-        plot_prediction(y_test, y_pred,
-                info="Accuracy: {})".format(accuracy))
+        plot_prediction(y_test, y_pred, info="Accuracy: {})".format(accuracy))
 
         plot_confusion(y_test, y_pred)
 
@@ -237,37 +258,38 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         with open(METRICS_FILE_PATH, "w") as f:
             json.dump(dict(mse=mse, r2=r2), f)
 
+
 def plot_confusion(y_test, y_pred):
     """Plotting confusion matrix of a classification model."""
 
     output_columns = np.array(
-            pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
+        pd.read_csv(DATA_PATH / "output_columns.csv", index_col=0)
     ).reshape(-1)
 
     n_output_cols = len(output_columns)
     indeces = np.arange(0, n_output_cols, 1)
 
     confusion = confusion_matrix(y_test, y_pred, normalize="true")
-            # labels=indeces)
+    # labels=indeces)
 
     print(confusion)
 
     df_confusion = pd.DataFrame(confusion)
 
-    df_confusion.index.name = 'True'
-    df_confusion.columns.name = 'Pred'
-    plt.figure(figsize = (10,7))
-    sn.heatmap(df_confusion, cmap="Blues", annot=True,annot_kws={"size": 16})
+    df_confusion.index.name = "True"
+    df_confusion.columns.name = "Pred"
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_confusion, cmap="Blues", annot=True, annot_kws={"size": 16})
     plt.savefig(PLOTS_PATH / "confusion_matrix.png")
 
 
 def save_predictions(df_predictions):
     """Save the predictions along with the ground truth as a csv file.
 
-        Args:
-            df_predictions_true (pandas dataframe): pandas data frame with the predictions and ground truth values.
+    Args:
+        df_predictions_true (pandas dataframe): pandas data frame with the predictions and ground truth values.
 
-        """
+    """
 
     PREDICTIONS_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -277,10 +299,10 @@ def save_predictions(df_predictions):
 def plot_intervals(df):
     """Plot the confidence intervals generated with conformal prediction.
 
-        Args:
-            df (pandas dataframe): pandas data frame.
+    Args:
+        df (pandas dataframe): pandas data frame.
 
-        """
+    """
 
     INTERVALS_PLOT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -288,33 +310,31 @@ def plot_intervals(df):
 
     fig = go.Figure()
 
-    fig.add_trace(
-        go.Scatter(x=x, y=df["predicted"], name="predictions")
-    )
+    fig.add_trace(go.Scatter(x=x, y=df["predicted"], name="predictions"))
 
     fig.add_trace(
         go.Scatter(
-            name='Upper Bound',
+            name="Upper Bound",
             x=x,
             y=df["upper_bound"],
             marker=dict(color="#444"),
             line=dict(width=0),
-            mode='lines',
-            showlegend=False
+            mode="lines",
+            showlegend=False,
         )
     )
 
     fig.add_trace(
         go.Scatter(
-            name='Lower Bound',
+            name="Lower Bound",
             x=x,
             y=df["lower_bound"],
             marker=dict(color="#444"),
             line=dict(width=0),
-            mode='lines',
-            fillcolor='rgba(68, 68, 68, 0.3)',
-            fill='tonexty',
-            showlegend=False
+            mode="lines",
+            fillcolor="rgba(68, 68, 68, 0.3)",
+            fill="tonexty",
+            showlegend=False,
         )
     )
 
@@ -336,30 +356,30 @@ def plot_prediction(y_true, y_pred, inputs=None, info=""):
 
     PREDICTION_PLOT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    x = np.linspace(0, y_true.shape[0]-1, y_true.shape[0])
+    x = np.linspace(0, y_true.shape[0] - 1, y_true.shape[0])
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    config = dict({'scrollZoom': True})
+    config = dict({"scrollZoom": True})
 
     if len(y_true.shape) > 1:
-        y_true = y_true[:,-1].reshape(-1)
-        y_pred = y_pred[:,-1].reshape(-1)
+        y_true = y_true[:, -1].reshape(-1)
+        y_pred = y_pred[:, -1].reshape(-1)
     else:
         y = y_true
         y = y_pred
 
     fig.add_trace(
-            go.Scatter(x=x, y=y_true, name="true"),
-            secondary_y=False,
+        go.Scatter(x=x, y=y_true, name="true"),
+        secondary_y=False,
     )
 
     fig.add_trace(
-            go.Scatter(x=x, y=y_pred, name="pred"),
-            secondary_y=False,
+        go.Scatter(x=x, y=y_pred, name="pred"),
+        secondary_y=False,
     )
 
     if inputs is not None:
         input_columns = pd.read_csv(DATA_PATH / "input_columns.csv")
-        
+
         if len(inputs.shape) == 3:
             n_features = inputs.shape[-1]
         elif len(inputs.shape) == 2:
@@ -369,19 +389,15 @@ def plot_prediction(y_true, y_pred, inputs=None, info=""):
 
             if len(inputs.shape) == 3:
                 fig.add_trace(
-                        go.Scatter(
-                            x=x, y=inputs[:, -1, i],
-                            name=input_columns.iloc[i, 1]
-                        ),
-                        secondary_y=True,
+                    go.Scatter(x=x, y=inputs[:, -1, i], name=input_columns.iloc[i, 1]),
+                    secondary_y=True,
                 )
             elif len(inputs.shape) == 2:
                 fig.add_trace(
-                        go.Scatter(
-                            x=x, y=inputs[:, i-n_features],
-                            name=input_columns.iloc[i, 1]
-                        ),
-                        secondary_y=True,
+                    go.Scatter(
+                        x=x, y=inputs[:, i - n_features], name=input_columns.iloc[i, 1]
+                    ),
+                    secondary_y=True,
                 )
 
     fig.update_layout(title_text="True vs pred " + info)
@@ -391,10 +407,11 @@ def plot_prediction(y_true, y_pred, inputs=None, info=""):
 
     fig.write_html(str(PLOTS_PATH / "prediction.html"))
 
+
 def plot_sequence_predictions(y_true, y_pred):
     """
     Plot the prediction compared to the true targets.
-    
+
     """
 
     target_size = y_true.shape[-1]
@@ -402,39 +419,38 @@ def plot_sequence_predictions(y_true, y_pred):
 
     pred_curve_idcs = np.arange(0, y_true.shape[0], pred_curve_step)
     # y_indeces = np.arange(0, y_true.shape[0]-1, 1)
-    y_indeces = np.linspace(0, y_true.shape[0]-1, y_true.shape[0])
+    y_indeces = np.linspace(0, y_true.shape[0] - 1, y_true.shape[0])
 
     n_pred_curves = len(pred_curve_idcs)
 
     fig = go.Figure()
 
-    y_true_df = pd.DataFrame(y_true[:,0])
+    y_true_df = pd.DataFrame(y_true[:, 0])
 
-    fig.add_trace(
-            go.Scatter(x=y_indeces, y=y_true[:,0].reshape(-1), name="true")
-    )
+    fig.add_trace(go.Scatter(x=y_indeces, y=y_true[:, 0].reshape(-1), name="true"))
 
     predictions = []
 
     for i in pred_curve_idcs:
-        indeces = y_indeces[i:i + target_size]
-        
+        indeces = y_indeces[i : i + target_size]
+
         if len(indeces) < target_size:
             break
 
-        y_pred_df = pd.DataFrame(y_pred[i,:], index=indeces)
-        
+        y_pred_df = pd.DataFrame(y_pred[i, :], index=indeces)
+
         predictions.append(y_pred_df)
 
         fig.add_trace(
-                go.Scatter(x=indeces, y=y_pred[i,:].reshape(-1),
-                    showlegend=False,
-                    mode="lines")
+            go.Scatter(
+                x=indeces, y=y_pred[i, :].reshape(-1), showlegend=False, mode="lines"
+            )
         )
 
     PREDICTION_PLOT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     fig.write_html(str(PLOTS_PATH / "prediction_sequences.html"))
+
 
 if __name__ == "__main__":
 
@@ -442,10 +458,14 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 3:
         try:
-            evaluate("assets/models/model.h5", "assets/data/combined/train.npz", "assets/data/combined/test.npz", "assets/data/combined/calibrate.npz")
+            evaluate(
+                "assets/models/model.h5",
+                "assets/data/combined/train.npz",
+                "assets/data/combined/test.npz",
+                "assets/data/combined/calibrate.npz",
+            )
         except:
             print("Could not find model and test set.")
             sys.exit(1)
     else:
         evaluate(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-

@@ -11,21 +11,22 @@ Created:
     2021-06-30
 
 """
+import json
 import os
 import sys
 
-import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import yaml
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.utils import shuffle
-import yaml
 
 from config import DATA_CLEANED_PATH, DATA_PATH, PROFILE_PATH
-from preprocess_utils import move_column, find_files
+from preprocess_utils import find_files, move_column
 from profiling import profile
+
 
 def clean(dir_path):
     """Clean up inputs.
@@ -58,16 +59,16 @@ def clean(dir_path):
         df = pd.read_csv(filepath)
 
         # If the first column is an index column, remove it.
-        if df.iloc[:,0].is_monotonic:
-            df = df.iloc[:,1:]
+        if df.iloc[:, 0].is_monotonic:
+            df = df.iloc[:, 1:]
 
         for c in removable_variables:
             del df[c]
-        
+
         df.dropna(inplace=True)
 
         dfs.append(df)
-        
+
     combined_df = pd.concat(dfs, ignore_index=True)
 
     if classification:
@@ -96,8 +97,7 @@ def clean(dir_path):
 
     if combine_files:
         combined_df.to_csv(
-            DATA_CLEANED_PATH
-            / (os.path.basename(dataset + "-cleaned.csv"))
+            DATA_CLEANED_PATH / (os.path.basename(dataset + "-cleaned.csv"))
         )
     else:
         for filepath, df in zip(filepaths, dfs):
@@ -107,6 +107,7 @@ def clean(dir_path):
             )
 
     pd.DataFrame(output_columns).to_csv(DATA_PATH / "output_columns.csv")
+
 
 def encode_target(encoder, df, target):
     """Encode a target variable based on a fitted encoder.
@@ -129,11 +130,11 @@ def encode_target(encoder, df, target):
     target_encoded = encoder.transform(target_col)
 
     del df[target]
-    
+
     if len(target_encoded.shape) > 1:
         for i in range(target_encoded.shape[-1]):
             column_name = f"{target}_{i}"
-            df[column_name] = target_encoded[:,i]
+            df[column_name] = target_encoded[:, i]
             output_columns.append(column_name)
     else:
         df[target] = target_encoded
@@ -178,9 +179,12 @@ def parse_profile_warnings():
             try:
                 correlation_scores = correlations[variables.index(variable)]
                 for correlated_variable in correlation_scores:
-                    if (correlation_scores[correlated_variable] > input_max_correlation_threshold and
-                        variable != correlated_variable and
-                        variable not in removable_variables):
+                    if (
+                        correlation_scores[correlated_variable]
+                        > input_max_correlation_threshold
+                        and variable != correlated_variable
+                        and variable not in removable_variables
+                    ):
 
                         removable_variables.append(correlated_variable)
                         # print(f"{variable} is correlated with {correlated_variable}: {correlation_scores[correlated_variable]}")
@@ -199,9 +203,9 @@ def parse_profile_warnings():
 
     return removable_variables
 
+
 if __name__ == "__main__":
 
     np.random.seed(2020)
 
     clean(sys.argv[1])
-

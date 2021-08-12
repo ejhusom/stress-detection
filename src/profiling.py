@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os 
+import os
 import sys
 
 import pandas as pd
-from pandas_profiling import ProfileReport
 import yaml
+from pandas_profiling import ProfileReport
 
 from config import PROFILE_PATH
 from preprocess_utils import find_files
 
+
 def profile(dir_path):
     """Creates a profile report of a data set.
-    
+
     Reads data from a set of input files, and creates a report containing
     profiling of the data. This profiling consists of various statistical
     properties. The report is stored in two formats:
@@ -36,11 +37,11 @@ def profile(dir_path):
 
     # Generate report.
     profile = ProfileReport(
-            combined_df, 
-            title="Profiling Analysis", 
-            config_file="src/profile.yaml", 
-            lazy=False,
-            sort=None
+        combined_df,
+        title="Profiling Analysis",
+        config_file="src/profile.yaml",
+        lazy=False,
+        sort=None,
     )
 
     # Create folder for profiling report
@@ -51,6 +52,6 @@ def profile(dir_path):
     profile.to_file(PROFILE_PATH / "profile.json")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     profile(sys.argv[1])

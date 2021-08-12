@@ -17,6 +17,7 @@ import numpy as np
 from config import DATA_COMBINED_PATH
 from preprocess_utils import find_files
 
+
 def combine(dir_path):
     """Combine data from multiple input files into one dataset.
 
@@ -38,7 +39,7 @@ def combine(dir_path):
 
     for filepath in filepaths:
         infile = np.load(filepath)
-        
+
         if "train" in filepath:
             train_inputs.append(infile["X"])
             train_outputs.append(infile["y"])

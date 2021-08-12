@@ -22,20 +22,22 @@ Notes:
 
 """
 import json
+import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
 import plotly.graph_objects as go
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
-from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
-from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH
-from model import cnn, model6, model4, lstm
-from preprocess_utils import split_sequences, move_column
+from config import DATA_PATH, MODELS_FILE_PATH, MODELS_PATH, TRAININGLOSS_PLOT_PATH
+from model import cnn, lstm, model4, model6
+from preprocess_utils import move_column, split_sequences
 
 pd.options.plotting.backend = "plotly"
+
 
 def preprocess_wesad_data(subject_numbers):
 
@@ -45,8 +47,8 @@ def preprocess_wesad_data(subject_numbers):
 
         data_file = f"assets/data/raw/WESAD/S{subject_number}.pkl"
 
-        with open(data_file, 'rb') as f:
-                data = pickle.load(f, encoding="latin1")
+        with open(data_file, "rb") as f:
+            data = pickle.load(f, encoding="latin1")
 
         label = data["label"]
         signal = data["signal"]
@@ -57,13 +59,13 @@ def preprocess_wesad_data(subject_numbers):
         # wrist_bvp_sample_freq = 64
         # wrist_acc_sample_freq = 32
         # wrist_eda_sample_freq = 4
-        n_seconds = label.size/chest_sample_freq
+        n_seconds = label.size / chest_sample_freq
         new_sample_freq = 64
         label_timestamps = np.linspace(0, n_seconds, label.size)
         wrist_bvp_timestamps = np.linspace(0, n_seconds, wrist["BVP"].size)
         wrist_acc_timestamps = np.linspace(0, n_seconds, wrist["ACC"].shape[0])
         wrist_eda_timestamps = np.linspace(0, n_seconds, wrist["EDA"].size)
-        new_timestamps = np.linspace(0, n_seconds, int(n_seconds*new_sample_freq))
+        new_timestamps = np.linspace(0, n_seconds, int(n_seconds * new_sample_freq))
 
         df = pd.DataFrame()
 
@@ -85,18 +87,21 @@ def preprocess_wesad_data(subject_numbers):
         # df["wrist_bvp"] = reindex_data(wrist["BVP"].reshape(-1),
         #         wrist_bvp_timestamps, new_timestamps)
 
-        df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
-                wrist_eda_timestamps, new_timestamps)
+        df["wrist_eda"] = reindex_data(
+            wrist["EDA"].reshape(-1), wrist_eda_timestamps, new_timestamps
+        )
 
-        df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
-                wrist_eda_timestamps, new_timestamps)
+        df["wrist_temp"] = reindex_data(
+            wrist["TEMP"].reshape(-1), wrist_eda_timestamps, new_timestamps
+        )
 
         for i, axis in enumerate(["x", "y", "z"]):
-            df[f"wrist_acc_{axis}"] = reindex_data(wrist["ACC"][:,i],
-                    wrist_acc_timestamps, new_timestamps)
+            df[f"wrist_acc_{axis}"] = reindex_data(
+                wrist["ACC"][:, i], wrist_acc_timestamps, new_timestamps
+            )
 
         # Remove unusable labels:
-        labels_to_ignore = [0,4,5,6,7]
+        labels_to_ignore = [0, 4, 5, 6, 7]
         df = df[~df["label"].isin(labels_to_ignore)]
         # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
@@ -107,7 +112,6 @@ def preprocess_wesad_data(subject_numbers):
         dfs.append(df)
 
     df = pd.concat(dfs, ignore_index=True)
-
 
     label = np.array(df["label"].copy())
 
@@ -133,6 +137,7 @@ def preprocess_wesad_data(subject_numbers):
 
     # print(y)
     np.savez("assets/data/wesad.npz", X=X, y=y)
+
 
 def train():
 
@@ -165,9 +170,9 @@ def train():
     # plt.plot(X[0,:,0])
     # plt.show()
 
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3,
-            random_state=5, shuffle=False)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=5, shuffle=False
+    )
 
     y_train = tf.keras.utils.to_categorical(y_train, num_classes=3)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes=3)
@@ -176,16 +181,17 @@ def train():
 
     # model = model6(256, y_tr_dim=3)
     model = lstm(
-            X_train.shape[-2], 
-            X_train.shape[-1],
-            3,
-            output_activation="softmax", loss="categorical_crossentropy",
-            metrics=["accuracy"]
+        X_train.shape[-2],
+        X_train.shape[-1],
+        3,
+        output_activation="softmax",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
     )
 
-    model.fit(X_train, y_train, epochs=20, batch_size=64,
-            validation_split=0.2, shuffle=True)
-
+    model.fit(
+        X_train, y_train, epochs=20, batch_size=64, validation_split=0.2, shuffle=True
+    )
 
     model.save(MODELS_FILE_PATH)
 
@@ -204,7 +210,7 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
 
     Returns:
         df (DataFrame): A DataFrame containing the reindexed data.
-    
+
     """
 
     df = pd.DataFrame(data)
@@ -213,9 +219,10 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
 
     return df
 
-if __name__ == '__main__': 
 
-    subject_numbers = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17]
+if __name__ == "__main__":
+
+    subject_numbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17]
     # subject_numbers = [2,3,4,5]
     # subject_numbers = [2]
     # preprocess_wesad_data(subject_numbers)

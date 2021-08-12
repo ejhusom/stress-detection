@@ -7,25 +7,24 @@
 # Description:
 # Utilities for data preprocessing.
 # ============================================================================
+import datetime
 import glob
 import os
+import pickle
 import shutil
+import string
 import sys
+import time
 
-# plt.rcParams['figure.figsize'] = [5.0, 3.0]
-# plt.rcParams['figure.dpi'] = 300
-
-import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
-import string
-import time
-
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 from utils import *
+
+# plt.rcParams['figure.figsize'] = [5.0, 3.0]
+# plt.rcParams['figure.dpi'] = 300
 
 
 def read_csv(filename, delete_columns=[], verbose=False):
@@ -60,6 +59,7 @@ def read_csv(filename, delete_columns=[], verbose=False):
         print("Length of data set: {}".format(len(df)))
 
     return df, index
+
 
 def find_files(dir_path, file_extension=""):
     """Find files in directory.
@@ -119,12 +119,9 @@ def move_column(df, column_name, new_idx):
     return df[reordered_columns]
 
 
-def split_sequences(sequences, 
-        window_size, 
-        target_size=1, 
-        n_target_columns=1,
-        overlap=0
-    ):
+def split_sequences(
+    sequences, window_size, target_size=1, n_target_columns=1, overlap=0
+):
     """Split data sequence into samples with matching input and targets.
 
     Args:
@@ -149,7 +146,7 @@ def split_sequences(sequences,
 
     while start_idx + window_size <= len(sequences):
         end_idx = start_idx + window_size
-        seq_x = sequences[start_idx : end_idx, n_target_columns:]
+        seq_x = sequences[start_idx:end_idx, n_target_columns:]
         seq_y = sequences[end_idx - 1, 0:n_target_columns]
         X.append(seq_x)
         y.append(seq_y)
@@ -157,8 +154,9 @@ def split_sequences(sequences,
 
     X = np.array(X)
     y = np.array(y)
-    
+
     return X, y
+
 
 def flatten_sequentialized(X):
     """Flatten sequentialized data.
@@ -171,7 +169,7 @@ def flatten_sequentialized(X):
 
     """
 
-    X_flat = X.reshape(X.shape[0], X.shape[1]*X.shape[2])
+    X_flat = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
 
     return X_flat
 

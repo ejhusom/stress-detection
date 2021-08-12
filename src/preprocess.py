@@ -20,20 +20,29 @@ Notes:
     5/6/7: Should be ignored
 
 """
-import yaml
-import sys
-import os
 import json
+import os
+import pickle
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
 import plotly.graph_objects as go
+import yaml
 
-from config import DATA_PATH, MODELS_PATH, MODELS_FILE_PATH, TRAININGLOSS_PLOT_PATH, DATA_PREPROCESSED_PATH, DATA_PATH_RAW
-from preprocess_utils import split_sequences, move_column, find_files
+from config import (
+    DATA_PATH,
+    DATA_PATH_RAW,
+    DATA_PREPROCESSED_PATH,
+    MODELS_FILE_PATH,
+    MODELS_PATH,
+    TRAININGLOSS_PLOT_PATH,
+)
+from preprocess_utils import find_files, move_column, split_sequences
 
 pd.options.plotting.backend = "plotly"
+
 
 def preprocess(dir_path):
     """Preprocess WESAD data.
@@ -57,8 +66,8 @@ def preprocess(dir_path):
     # for subject_number in subject_numbers:
     for filepath in filepaths:
 
-        with open(filepath, 'rb') as f:
-                data = pickle.load(f, encoding="latin1")
+        with open(filepath, "rb") as f:
+            data = pickle.load(f, encoding="latin1")
 
         label = data["label"]
         signal = data["signal"]
@@ -69,13 +78,13 @@ def preprocess(dir_path):
         # wrist_bvp_sample_freq = 64
         # wrist_acc_sample_freq = 32
         # wrist_eda_sample_freq = 4
-        n_seconds = label.size/chest_sample_freq
+        n_seconds = label.size / chest_sample_freq
         new_sample_freq = 64
         label_timestamps = np.linspace(0, n_seconds, label.size)
         wrist_bvp_timestamps = np.linspace(0, n_seconds, wrist["BVP"].size)
         wrist_acc_timestamps = np.linspace(0, n_seconds, wrist["ACC"].shape[0])
         wrist_eda_timestamps = np.linspace(0, n_seconds, wrist["EDA"].size)
-        new_timestamps = np.linspace(0, n_seconds, int(n_seconds*new_sample_freq))
+        new_timestamps = np.linspace(0, n_seconds, int(n_seconds * new_sample_freq))
 
         df = pd.DataFrame()
 
@@ -97,18 +106,21 @@ def preprocess(dir_path):
         # df["wrist_bvp"] = reindex_data(wrist["BVP"].reshape(-1),
         #         wrist_bvp_timestamps, new_timestamps)
 
-        df["wrist_eda"] = reindex_data(wrist["EDA"].reshape(-1),
-                wrist_eda_timestamps, new_timestamps)
+        df["wrist_eda"] = reindex_data(
+            wrist["EDA"].reshape(-1), wrist_eda_timestamps, new_timestamps
+        )
 
-        df["wrist_temp"] = reindex_data(wrist["TEMP"].reshape(-1),
-                wrist_eda_timestamps, new_timestamps)
+        df["wrist_temp"] = reindex_data(
+            wrist["TEMP"].reshape(-1), wrist_eda_timestamps, new_timestamps
+        )
 
         for i, axis in enumerate(["x", "y", "z"]):
-            df[f"wrist_acc_{axis}"] = reindex_data(wrist["ACC"][:,i],
-                    wrist_acc_timestamps, new_timestamps)
+            df[f"wrist_acc_{axis}"] = reindex_data(
+                wrist["ACC"][:, i], wrist_acc_timestamps, new_timestamps
+            )
 
         # Remove unusable labels:
-        labels_to_keep = [1,2,3]
+        labels_to_keep = [1, 2, 3]
         df = df[df["label"].isin(labels_to_keep)]
         # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
@@ -116,9 +128,8 @@ def preprocess(dir_path):
         print(f"Saved file {filepath}.")
 
         df.to_csv(
-                DATA_PREPROCESSED_PATH /
-                (os.path.basename(filepath).replace(".pkl",
-                "-preprocessed.csv"))
+            DATA_PREPROCESSED_PATH
+            / (os.path.basename(filepath).replace(".pkl", "-preprocessed.csv"))
         )
 
 
@@ -136,7 +147,7 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
 
     Returns:
         df (DataFrame): A DataFrame containing the reindexed data.
-    
+
     """
 
     df = pd.DataFrame(data)
@@ -145,6 +156,7 @@ def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
 
     return df
 
-if __name__ == '__main__': 
+
+if __name__ == "__main__":
 
     preprocess(sys.argv[1])
