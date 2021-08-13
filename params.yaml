@@ -31,7 +31,7 @@ featurize:
     target_min_correlation_threshold: 0.0
 
 split:
-    train_split: 0.5
+    train_split: 0.7
     shuffle_files: False
     calibrate_split: 0.0
 
