@@ -148,7 +148,10 @@ def train(filepath):
             model = RandomForestRegressor()
     elif learning_method == "xgboost":
         if classification:
-            model = xgb.XGBClassifier()
+            model = xgb.XGBClassifier(
+                    n_estimators=15,
+                    max_depth=3
+            )
         else:
             model = xgb.XGBRegressor()
     elif learning_method == "lda":

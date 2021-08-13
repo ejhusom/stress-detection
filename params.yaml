@@ -13,12 +13,12 @@ clean:
 featurize:
     features:
         # - chest_ecg
-        # - wrist_acc_x
-        # - wrist_acc_y
-        # - wrist_acc_z
-        # - wrist_temp
+        - wrist_acc_x
+        - wrist_acc_y
+        - wrist_acc_z
+        - wrist_temp
         # - wrist_eda
-        # - wrist_bvp
+        - wrist_bvp
     add_rolling_features: True
     remove_features:
         - wrist_acc_x
@@ -31,7 +31,7 @@ featurize:
     target_min_correlation_threshold: 0.0
 
 split:
-    train_split: 0.5
+    train_split: 0.7
     shuffle_files: False
     calibrate_split: 0.0
 
