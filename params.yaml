@@ -16,18 +16,18 @@ featurize:
         - wrist_acc_x
         - wrist_acc_y
         - wrist_acc_z
-        # - wrist_temp
-        # - wrist_eda
-        # - wrist_bvp
+        - wrist_temp
+        - wrist_eda
+        - wrist_bvp
     add_rolling_features: True
     remove_features:
         - wrist_acc_x
         - wrist_acc_y
         - wrist_acc_z
-        # - wrist_temp
-        # - wrist_eda
-        # - wrist_bvp
-    rolling_window_size: 256
+        - wrist_temp
+        - wrist_eda
+        - wrist_bvp
+    rolling_window_size: 
     target_min_correlation_threshold: 0.0
 
 split:
@@ -45,7 +45,7 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    learning_method: rf
+    learning_method: xgboost
     n_epochs: 500
     batch_size: 128
     kernel_size: 3
