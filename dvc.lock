@@ -170,7 +170,7 @@ stages:
         sequentialize.shuffle_samples: false
         sequentialize.target_size: 1
         sequentialize.window_size: 1
-        train.learning_method: xgboost
+        train.learning_method: rf
     outs:
     - path: assets/data/sequentialized
       md5: 47b4caf29059ebd15dd7cfbae4efa83e.dir
@@ -219,13 +219,13 @@ stages:
         train.batch_size: 128
         train.early_stopping: true
         train.kernel_size: 3
-        train.learning_method: xgboost
+        train.learning_method: rf
         train.n_epochs: 500
         train.patience: 40
     outs:
     - path: assets/models
-      md5: a1c6b63a6f923bce6b06f785c83c03ad.dir
-      size: 23298
+      md5: e6088dede833369210308dd375184e7c.dir
+      size: 23225460
       nfiles: 1
   evaluate:
     cmd: python3 src/evaluate.py assets/models/model.h5 assets/data/combined/train.npz
@@ -238,8 +238,8 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: aef129f98d364d95579a57c90d6d9a26
-      size: 23298
+      md5: 3be72f670f4db87c87409db48ff1f430
+      size: 23225460
     - path: src/evaluate.py
       md5: 93c76510c17245ae0cc98b8f0d67d07a
       size: 13939
@@ -248,7 +248,7 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: 782ae48df4e34cdc60e7cb4bacb5e808
+      md5: 7104d485bf9c8c7f14ee6b54e5c318e0
       size: 32
   restructure:
     cmd: python3 src/preprocess.py assets/data/raw/WESAD/
