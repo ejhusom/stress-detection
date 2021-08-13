@@ -16,17 +16,17 @@ featurize:
         - wrist_acc_x
         - wrist_acc_y
         - wrist_acc_z
-        - wrist_temp
+        # - wrist_temp
         # - wrist_eda
-        - wrist_bvp
+        # - wrist_bvp
     add_rolling_features: True
     remove_features:
         - wrist_acc_x
         - wrist_acc_y
         - wrist_acc_z
-        - wrist_temp
+        # - wrist_temp
         # - wrist_eda
-        - wrist_bvp
+        # - wrist_bvp
     rolling_window_size: 256
     target_min_correlation_threshold: 0.0
 
