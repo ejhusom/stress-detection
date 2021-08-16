@@ -251,21 +251,21 @@ def calculate_slope(series, shift=2, rolling_mean_window=1, absvalue=False):
 
 def butter_high_pass_filter(data):
     cutoff = 10
-    fs = 30
+    fs = 64
     order = 5
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
     b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
     y = signal.filtfilt(b, a, data)
 
+    return y
 
-    # import matplotlib.pyplot as plt
-    # plt.figure()
-    # plt.plot(data)
-    # plt.plot(y, label="y")
-    # # plt.savefig("hp.png")
-    # plt.show()
-
+def butter_low_pass_filter(data):
+    sampling_freq = 64
+    cutoff = 0.1*sampling_freq/2
+    order = 5
+    b, a = signal.butter(order, cutoff, btype='lowpass', analog=False)
+    y = signal.filtfilt(b, a, data)
 
     return y
 
