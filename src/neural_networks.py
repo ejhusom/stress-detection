@@ -212,12 +212,12 @@ def lstm(
 
     model = models.Sequential()
     model.add(
-        layers.LSTM(100, input_shape=(window_size, n_features))
+        layers.LSTM(50, input_shape=(window_size, n_features))
     )  # , return_sequences=True))
     model.add(layers.Dropout(0.5))
     # model.add(layers.LSTM(32, activation='relu'))
     # model.add(layers.LSTM(16, activation='relu'))
-    model.add(layers.Dense(100, activation="relu"))
+    model.add(layers.Dense(128, activation="relu"))
     model.add(layers.Dense(n_steps_out, activation=output_activation))
     model.compile(optimizer="adam", loss=loss, metrics=metrics)
 
