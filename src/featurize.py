@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pandas.api.types import is_numeric_dtype
-from scipy.signal import find_peaks
+from scipy import signal
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 
@@ -189,6 +189,7 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
         df[f"{col}_variance"] = np.var(df[col])
         df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
+        df[f"{col}_highpass"] = butter_high_pass_filter(df[col])
 
     df = df.dropna()
     return df
@@ -196,7 +197,7 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
 
 def calculate_peak_frequency(series, rolling_mean_window=200):
 
-    peaks_indices = find_peaks(series, distance=5)[0]
+    peaks_indices = signal.find_peaks(series, distance=5)[0]
     peaks = np.zeros(len(series))
     peaks[peaks_indices] = 1
 
@@ -246,6 +247,27 @@ def calculate_slope(series, shift=2, rolling_mean_window=1, absvalue=False):
     slope = slope.rolling(rolling_mean_window).mean()
 
     return slope
+
+
+def butter_high_pass_filter(data):
+    cutoff = 10
+    fs = 30
+    order = 5
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
+    y = signal.filtfilt(b, a, data)
+
+
+    # import matplotlib.pyplot as plt
+    # plt.figure()
+    # plt.plot(data)
+    # plt.plot(y, label="y")
+    # # plt.savefig("hp.png")
+    # plt.show()
+
+
+    return y
 
 
 # def filter_inputs_by_correlation():
