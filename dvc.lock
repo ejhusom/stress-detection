@@ -218,14 +218,14 @@ stages:
         clean.classification: true
         train.batch_size: 128
         train.early_stopping: true
-        train.kernel_size: 3
+        train.kernel_size: 5
         train.learning_method: cnn
         train.n_epochs: 500
         train.patience: 10
     outs:
     - path: assets/models
-      md5: d74a70fb0aceace8bcc2037a75cbffce.dir
-      size: 3216072
+      md5: 48a3bae238cd0b0c29c465407371d9a4.dir
+      size: 3126984
       nfiles: 1
   evaluate:
     cmd: python3 src/evaluate.py assets/models/model.h5 assets/data/combined/train.npz
@@ -238,8 +238,8 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: 4e1e74741e6a66a16b81e33d4888f1f9
-      size: 3216072
+      md5: ebea9a822a4d6fd1b4dd923eae0046ae
+      size: 3126984
     - path: src/evaluate.py
       md5: 93c76510c17245ae0cc98b8f0d67d07a
       size: 13939
@@ -248,5 +248,5 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: e677a90d0f7f26cb6c3a41fec1c880b9
+      md5: 2feede94a8518aa33d5addf820726fde
       size: 32
