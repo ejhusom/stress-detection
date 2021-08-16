@@ -190,7 +190,7 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_variance"] = np.var(df[col])
         df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
         df[f"{col}_highpass"] = butter_high_pass_filter(df[col])
-        df[f"{col}_lowpass"] = butter_low_pass_filter(df[col])
+        # df[f"{col}_lowpass"] = butter_low_pass_filter(df[col])
 
     df = df.dropna()
     return df
