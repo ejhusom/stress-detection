@@ -47,7 +47,7 @@ train:
     learning_method: cnn
     n_epochs: 500
     batch_size: 128
-    kernel_size: 3
+    kernel_size: 5
     early_stopping: True
     patience: 10
 
