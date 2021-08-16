@@ -27,7 +27,7 @@ featurize:
         - wrist_temp
         - wrist_eda
         - wrist_bvp
-    rolling_window_size: 
+    rolling_window_size: 256
     target_min_correlation_threshold: 0.0
 
 split:

@@ -149,7 +149,7 @@ def train(filepath):
     elif learning_method == "xgboost":
         if classification:
             model = xgb.XGBClassifier(
-                    n_estimators=15,
+                    n_estimators=10,
                     max_depth=3
             )
         else:
