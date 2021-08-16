@@ -252,7 +252,7 @@ def calculate_slope(series, shift=2, rolling_mean_window=1, absvalue=False):
 
 def butter_high_pass_filter(data):
     cutoff = 10
-    fs = 64
+    fs = 30
     order = 5
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
