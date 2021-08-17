@@ -17,6 +17,7 @@ import pandas as pd
 import yaml
 from pandas.api.types import is_numeric_dtype
 from scipy import signal
+from scipy import stats
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 
@@ -189,7 +190,31 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
         df[f"{col}_variance"] = np.var(df[col])
         df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
-        df[f"{col}_highpass"] = butter_high_pass_filter(df[col])
+        # df[f"{col}_median"] = df[col].rolling(window_size).median()
+        # df[f"{col}_skew"] = df[col].rolling(window_size).skew()
+        # df[f"{col}_kurt"] = df[col].rolling(window_size).kurt()
+        # df[f"{col}_quantile"] = df[col].rolling(window_size).quantile(0.25)
+        # df[f"{col}_sem"] = df[col].rolling(window_size).sem()
+        # df[f"{col}_corr"] = df[col].rolling(window_size).corr()
+        # df[f"{col}_cov"] = df[col].rolling(window_size).cov()
+        # df[f"{col}_highpass"] = butter_high_pass_filter(df[col])
+
+        # df[f"{col}_interquartile_range"] = df[col].rolling(window_size).apply(lambda x: np.percentile(x, 77) -
+        #         np.percentile(x, 25))
+        # df[f"{col}_median_abs_dev"] = df[col].rolling(window_size).apply(lambda x:
+        #         np.median(np.absolute(x - np.median(x))))
+        # df[f"{col}_median_abs_dev"] = np.median(np.absolute(df[f"{col}"] - df[f"{col}_median"]))
+        # print(df[f"{col}_median_abs_dev"])
+        # print(df[f"{col}_median"])
+
+        # df[f"{col}_negative_count"] = df[col].rolling(window_size).apply(lambda x: np.sum(x < 0))
+        # df[f"{col}_positive_count"] = df[col].rolling(window_size).apply(lambda x: np.sum(x > 0))
+        # df[f"{col}_num_peaks"] = df[col].rolling(window_size).apply(lambda x:
+        #         len(signal.find_peaks(np.array(x))[2]))
+        # df[f"{col}_skewness"] = df[col].rolling(window_size).apply(lambda x: stats.skew(x))
+        # df[f"{col}_kurtosis"] = df[col].rolling(window_size).apply(lambda x: stats.kurtosis(x))
+        # df[f"{col}_energy"] = df[col].rolling(window_size).apply(lambda x: np.sum(x**2/100))
+
         # df[f"{col}_lowpass"] = butter_low_pass_filter(df[col])
 
     df = df.dropna()

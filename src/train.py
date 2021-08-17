@@ -150,7 +150,9 @@ def train(filepath):
         if classification:
             model = xgb.XGBClassifier(
                     n_estimators=10,
-                    max_depth=3
+                    max_depth=3,
+                    # min_child_weight=1,
+                    # learning_rate=0.01
             )
         else:
             model = xgb.XGBRegressor()
