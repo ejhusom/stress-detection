@@ -30,7 +30,7 @@ featurize:
     target_min_correlation_threshold: 0.0
 
 split:
-    train_split: 0.7
+    train_split: 0.75
     shuffle_files: False
     calibrate_split: 0.0
 
@@ -44,10 +44,10 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    learning_method: xgboost
-    n_epochs: 100
+    learning_method: cnn
+    n_epochs: 500
     batch_size: 128
-    kernel_size: 7
+    kernel_size: 9
     early_stopping: True
     patience: 10
 
