@@ -100,9 +100,9 @@ def preprocess(dir_path):
             )
 
         # Remove unusable labels:
-        labels_to_keep = [1, 2, 3]
+        labels_to_keep = [1, 2, 3, 4]
         df = df[df["label"].isin(labels_to_keep)]
-        # df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
+        df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
 
         print(f"Saved file {filepath}.")

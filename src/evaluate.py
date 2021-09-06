@@ -43,7 +43,7 @@ from config import (
     NON_DL_METHODS,
     PLOTS_PATH,
     PREDICTION_PLOT_PATH,
-    PREDICTIONS_FILE_PATH
+    PREDICTIONS_FILE_PATH,
 )
 
 
@@ -427,7 +427,7 @@ def plot_sequence_predictions(y_true, y_pred):
     predictions = []
 
     for i in pred_curve_idcs:
-        indeces = y_indeces[i: i + target_size]
+        indeces = y_indeces[i : i + target_size]
 
         if len(indeces) < target_size:
             break

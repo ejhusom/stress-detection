@@ -95,6 +95,8 @@ def clean(dir_path):
         for i in range(len(dfs)):
             dfs[i], _ = encode_target(encoder, dfs[i], target)
 
+        print(np.unique(combined_df[target]))
+
     else:
         output_columns = [target]
 
