@@ -105,12 +105,17 @@ def preprocess(dir_path):
         df.label = df.label.replace({1: 0, 2: 1, 3: 0, 4: 0})
         df.reset_index(drop=True, inplace=True)
 
-        print(f"Saved file {filepath}.")
+        # if os.path.basename(filepath)[1:3] in ["14", "15", "16", "17"]:
+        #     df["Split"] = "TEST"
+        # else:
+        #     df["Split"] = "UNASSIGNED"
 
         df.to_csv(
             DATA_PATH_RAW
             / (os.path.basename(filepath).replace(".pkl", "-preprocessed.csv"))
         )
+
+        print(f"Saved file {filepath}.")
 
 
 def reindex_data(data, old_timestamps, new_timestamps, method="nearest"):
