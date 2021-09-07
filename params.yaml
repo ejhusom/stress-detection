@@ -5,7 +5,7 @@ clean:
     target: label
     classification: True
     onehot_encode_target: False
-    combine_files: False
+    combine_files: True
     percentage_zeros_threshold: 1.0
     correlation_metric: pearson
     input_max_correlation_threshold: 1.0
@@ -41,7 +41,7 @@ scale:
 sequentialize:
     window_size: 1
     target_size: 1
-    shuffle_samples: False
+    shuffle_samples: True
 
 train:
     learning_method: dnn

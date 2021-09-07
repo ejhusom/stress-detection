@@ -196,8 +196,10 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         y_pred = model.predict(X_test)
 
         if onehot_encode_target:
+            y_pred_probs = y_pred
             y_pred = np.argmax(y_pred, axis=-1)
         elif classification:
+            y_pred_probs = y_pred
             y_pred = np.array((y_pred > 0.5), dtype=np.int)
 
     if classification:
@@ -208,38 +210,13 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")
 
-        plot_prediction(y_test, y_pred, info="Accuracy: {})".format(accuracy))
+        plot_prediction(y_test, y_pred_probs, info="Accuracy: {})".format(accuracy))
 
         plot_confusion(y_test, y_pred)
 
         with open(METRICS_FILE_PATH, "w") as f:
             json.dump(dict(accuracy=accuracy), f)
 
-        # ==========================================
-        # TODO: Fix SHAP code
-        # explainer = shap.TreeExplainer(model, X_test[:10])
-        # shap_values = explainer.shap_values(X_test[:10])
-        # plt.figure()
-        # shap.summary_plot(shap_values[0][:,0,:], X_test[:10][:,0,:])
-        # shap.image_plot([shap_values[i][0] for i in range(len(shap_values))], X_test[:10])
-        # input_columns = pd.read_csv(DATA_PATH / "input_columns.csv").iloc[:,-1]
-        # print(input_columns)
-        # shap.force_plot(explainer.expected_value[0], shap_values[0][0])
-
-        # plt.savefig("test.png")
-
-        # feature_importances = model.feature_importances_
-        # imp = list()
-        # for i, f in enumerate(feature_importances):
-        #     imp.append((f,i))
-
-        # sorted_feature_importances = sorted(imp)
-
-        # print("Feature importances")
-        # print(sorted_feature_importances)
-        # ==========================================
-
-    # Regression:
     else:
         mse = mean_squared_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
