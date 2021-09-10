@@ -44,7 +44,7 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    learning_method: dnn
+    learning_method: xgboost
     n_epochs: 500
     batch_size: 128
     kernel_size: 9

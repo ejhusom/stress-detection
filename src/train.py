@@ -180,7 +180,11 @@ def train(filepath):
 
     if learning_method in NON_DL_METHODS:
         model.fit(X_train, y_train)
-        dump(model, MODELS_FILE_PATH)
+        if learning_method == "xgboost":
+            model.save_model("save_model.json")
+            model.get_booster().dump_model(MODELS_FILE_PATH)
+        else:
+            dump(model, MODELS_FILE_PATH)
     else:
         print(model.summary())
 
