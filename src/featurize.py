@@ -175,8 +175,8 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
     columns = [col for col in df.columns if col not in ignore_columns]
 
     for col in columns:
-        df[f"{col}_sum"] = df[col].rolling(window_size).sum()
-        df[f"{col}_gradient"] = np.gradient(df[col])
+        # df[f"{col}_sum"] = df[col].rolling(window_size).sum()
+        # df[f"{col}_gradient"] = np.gradient(df[col])
         df[f"{col}_mean"] = df[col].rolling(window_size).mean()
         maximum = df[col].rolling(window_size).max()
         minimum = df[col].rolling(window_size).min()
@@ -184,10 +184,10 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_minimum"] = minimum
         df[f"{col}_min_max_range"] = maximum - minimum
         slope = calculate_slope(df[col])
-        df[f"{col}_slope"] = slope
-        df[f"{col}_slope_sin"] = np.sin(slope)
-        df[f"{col}_slope_cos"] = np.cos(slope)
-        df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
+        # df[f"{col}_slope"] = slope
+        # df[f"{col}_slope_sin"] = np.sin(slope)
+        # df[f"{col}_slope_cos"] = np.cos(slope)
+        # df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
         df[f"{col}_variance"] = np.var(df[col])
         # df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
 

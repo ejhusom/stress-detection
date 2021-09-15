@@ -209,6 +209,13 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")
+        
+        imp = model.feature_importances_
+        input_columns = pd.read_csv(DATA_PATH / "input_columns.csv")
+
+        for i, im in zip(input_columns.iloc[:,1], imp):
+            print(f"{i}: {im}")
+
 
         plot_prediction(y_test, y_pred, info="Accuracy: {})".format(accuracy))
 
