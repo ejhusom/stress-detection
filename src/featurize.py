@@ -189,7 +189,8 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_slope_cos"] = np.cos(slope)
         df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
         df[f"{col}_variance"] = np.var(df[col])
-        df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
+        # df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
+
         # df[f"{col}_median"] = df[col].rolling(window_size).median()
         # df[f"{col}_skew"] = df[col].rolling(window_size).skew()
         # df[f"{col}_kurt"] = df[col].rolling(window_size).kurt()
