@@ -188,7 +188,7 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         # df[f"{col}_slope_sin"] = np.sin(slope)
         # df[f"{col}_slope_cos"] = np.cos(slope)
         # df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
-        df[f"{col}_variance"] = np.var(df[col])
+        # df[f"{col}_variance"] = np.var(df[col])
         # df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
 
         # df[f"{col}_median"] = df[col].rolling(window_size).median()
