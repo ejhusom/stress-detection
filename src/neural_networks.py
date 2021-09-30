@@ -179,7 +179,7 @@ def dnn(
     set_seed(seed)
 
     model = models.Sequential()
-    model.add(layers.Dense(4, activation="relu", input_dim=input_x))
+    model.add(layers.Dense(6, activation="relu", input_dim=input_x))
     # model.add(layers.Dense(256, activation="relu"))
     # model.add(layers.Dense(128, activation="relu"))
     # model.add(layers.Dense(64, activation="relu"))
