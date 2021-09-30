@@ -170,7 +170,7 @@ stages:
         sequentialize.shuffle_samples: false
         sequentialize.target_size: 1
         sequentialize.window_size: 1
-        train.learning_method: xgboost
+        train.learning_method: dnn
     outs:
     - path: assets/data/sequentialized
       md5: c5cabda0ec19d3ff729dbf22f99f8851.dir
@@ -208,24 +208,24 @@ stages:
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
     - path: src/neural_networks.py
-      md5: 1f42b9ab17c79817755c6870ad65cf8d
-      size: 12366
+      md5: 8b2714fd385633ebbdd8607363c39433
+      size: 12371
     - path: src/train.py
-      md5: 3893873e6fa6c13580a6d78656cc2076
+      md5: 908cd70c7a3286fcc018dfd6e1a3dafb
       size: 8234
     params:
       params.yaml:
         clean.classification: true
-        train.batch_size: 128
-        train.early_stopping: true
+        train.batch_size: 256
+        train.early_stopping: false
         train.kernel_size: 9
-        train.learning_method: xgboost
-        train.n_epochs: 500
-        train.patience: 10
+        train.learning_method: dnn
+        train.n_epochs: 50
+        train.patience: 3
     outs:
     - path: assets/models
-      md5: 8fe2e4703b15d2bed7ba0eb61cb8f358.dir
-      size: 16604
+      md5: e7a8dbbe4bf0b73a0c27dc24a91db717.dir
+      size: 25536
       nfiles: 1
   evaluate:
     cmd: python3 src/evaluate.py assets/models/model.h5 assets/data/combined/train.npz
@@ -238,15 +238,15 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: acc37047c242182433cd2273aabc2307
-      size: 16604
+      md5: 38ceb9ffd15d8dc39eebdfde43d601c4
+      size: 25536
     - path: src/evaluate.py
-      md5: 943724eb052161c744aadaf092b20eab
-      size: 9297
+      md5: 76181235d45342f56527cbe4a506c3b0
+      size: 9354
     params:
       params.yaml:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: b4f7166d0f506e5faa456238722ecff3
+      md5: c951fa0777ef78c355b5e3f8753accfb
       size: 32

@@ -44,12 +44,12 @@ sequentialize:
     shuffle_samples: False
 
 train:
-    # learning_method: dnn
-    learning_method: xgboost
-    n_epochs: 500
-    batch_size: 128
+    learning_method: dnn
+    # learning_method: xgboost
+    n_epochs: 50
+    batch_size: 256
     kernel_size: 9
-    early_stopping: True
-    patience: 10
+    early_stopping: False
+    patience: 3
 
 evaluate:

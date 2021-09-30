@@ -227,7 +227,7 @@ def train(filepath):
                 y_train,
                 epochs=10,
                 batch_size=params["batch_size"],
-                validation_split=0.25,
+                validation_split=0.20,
             )
 
             loss = history.history[monitor_metric]
@@ -238,7 +238,7 @@ def train(filepath):
                 y_train,
                 epochs=params["n_epochs"],
                 batch_size=params["batch_size"],
-                validation_split=0.25,
+                validation_split=0.20,
                 callbacks=[early_stopping, model_checkpoint],
             )
 
@@ -251,7 +251,7 @@ def train(filepath):
                 y_train,
                 epochs=params["n_epochs"],
                 batch_size=params["batch_size"],
-                validation_split=0.25,
+                validation_split=0.20,
             )
 
             loss = history.history["loss"]
