@@ -194,13 +194,13 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         # df[f"{col}_variance"] = df[col].rolling(window_size).var()
         # df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
 
-        # df[f"{col}_median"] = df[col].rolling(window_size).median()
+        df[f"{col}_median"] = df[col].rolling(window_size).median()
         # df[f"{col}_skew"] = df[col].rolling(window_size).skew()
         # df[f"{col}_kurt"] = df[col].rolling(window_size).kurt()
         # df[f"{col}_quantile"] = df[col].rolling(window_size).quantile(0.25)
         # df[f"{col}_sem"] = df[col].rolling(window_size).sem()
         # df[f"{col}_corr"] = df[col].rolling(window_size).corr()
-        # df[f"{col}_cov"] = df[col].rolling(window_size).cov()
+        df[f"{col}_cov"] = df[col].rolling(window_size).cov()
         # df[f"{col}_highpass"] = butter_high_pass_filter(df[col])
 
         # df[f"{col}_interquartile_range"] = df[col].rolling(window_size).apply(lambda x: np.percentile(x, 77) -
