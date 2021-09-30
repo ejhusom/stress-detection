@@ -184,11 +184,13 @@ def train(filepath):
 
         # The following if-else block is used for producing text version of
         # model:
-        # if learning_method == "xgboost":
-        #     model.save_model("save_model.json")
-        #     model.get_booster().dump_model(MODELS_FILE_PATH)
-        # else:
-        #     dump(model, MODELS_FILE_PATH)
+        if learning_method == "xgboost":
+            model.save_model("save_model.json")
+            model.get_booster().dump_model("save_model.txt")
+            xgb.plot_tree(model)
+            plt.show()
+
+        dump(model, MODELS_FILE_PATH)
     else:
         print(model.summary())
 

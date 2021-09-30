@@ -142,10 +142,12 @@ def featurize(dir_path):
             / os.path.basename(filepath).replace("cleaned.csv", "featurized.npy"),
             df.to_numpy(),
         )
+        df.to_csv("featurized.csv")
 
     # Save list of features used
     input_columns = [col for col in df.columns if col not in output_columns]
     pd.DataFrame(input_columns).to_csv(DATA_PATH / "input_columns.csv")
+
 
 
 def compute_rolling_features(df, window_size, ignore_columns=None):
@@ -183,12 +185,13 @@ def compute_rolling_features(df, window_size, ignore_columns=None):
         df[f"{col}_maximum"] = maximum
         df[f"{col}_minimum"] = minimum
         df[f"{col}_min_max_range"] = maximum - minimum
-        slope = calculate_slope(df[col])
+        # slope = calculate_slope(df[col])
         # df[f"{col}_slope"] = slope
         # df[f"{col}_slope_sin"] = np.sin(slope)
         # df[f"{col}_slope_cos"] = np.cos(slope)
         # df[f"{col}_standard_deviation"] = df[col].rolling(window_size).std()
         # df[f"{col}_variance"] = np.var(df[col])
+        # df[f"{col}_variance"] = df[col].rolling(window_size).var()
         # df[f"{col}_peak_frequency"] = calculate_peak_frequency(df[col])
 
         # df[f"{col}_median"] = df[col].rolling(window_size).median()

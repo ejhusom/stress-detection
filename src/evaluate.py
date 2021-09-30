@@ -21,9 +21,6 @@ import seaborn as sn
 import shap
 import yaml
 from joblib import load
-from nonconformist.base import RegressorAdapter
-from nonconformist.cp import IcpRegressor
-from nonconformist.nc import AbsErrorErrFunc, NcFactory, RegressorNc
 from plotly.subplots import make_subplots
 from sklearn.base import RegressorMixin
 from sklearn.metrics import (
@@ -45,37 +42,6 @@ from config import (
     PREDICTION_PLOT_PATH,
     PREDICTIONS_FILE_PATH,
 )
-
-
-# class ConformalPredictionModel(RegressorMixin):
-class ConformalPredictionModel(RegressorAdapter):
-    """Implement custom sklearn model to use with the nonconformist library.
-
-    Args:
-        model_filepath (str): Path to ALREADY TRAINED model.
-
-    """
-
-    # def __init__(self, model_filepath):
-    def __init__(self, model):
-        # Load already trained model from h5 file.
-        # self.model = models.load_model(model_filepath)
-        # self.model_filepath = model_filepath
-
-        # super(ConformalPredictionModel, self).__init__(models.load_model(model_filepath), fit_params=None)
-        super(ConformalPredictionModel, self).__init__(model)
-
-    def fit(self, X=None, y=None):
-        # We don't do anything here because we are loading an already trained model in __init__().
-        # Still, we need to implement this method so the conformal normalizer
-        # is initialized by nonconformist.
-        pass
-
-    def predict(self, X=None):
-        predictions = self.model.predict(X)
-        predictions = predictions.reshape((predictions.shape[0],))
-
-        return predictions
 
 
 def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
@@ -110,97 +76,19 @@ def evaluate(model_filepath, train_filepath, test_filepath, calibrate_filepath):
 
     y_pred = None
 
-    if params_split["calibrate_split"] > 0 and not classification:
-        trained_model = models.load_model(model_filepath)
-        # conformal_pred_model = ConformalPredictionModel(model_filepath)
-        conformal_pred_model = ConformalPredictionModel(trained_model)
-
-        m = nn.cnn(
-            X_test.shape[-2],
-            X_test.shape[-1],
-            output_length=1,
-            kernel_size=params_train["kernel_size"],
-        )
-
-        nc = RegressorNc(
-            conformal_pred_model,
-            err_func=AbsErrorErrFunc(),  # non-conformity function
-            # normalizer_model=KNeighborsRegressor(n_neighbors=15)  # normalizer
-            # normalizer=m
-        )
-
-        # nc = NcFactory.create_nc(conformal_pred_model,
-        #     err_func=AbsErrorErrFunc(),  # non-conformity function
-        #     # normalizer_model=KNeighborsRegressor(n_neighbors=15)  # normalizer
-        #     normalizer_model=m
-        # )
-
-        model = IcpRegressor(nc)
-
-        # Fit the normalizer.
-        train = np.load(train_filepath)
-        X_train = train["X"]
-        y_train = train["y"]
-
-        y_train = y_train.reshape((y_train.shape[0],))
-
-        model.fit(X_train, y_train)
-
-        # Calibrate model.
-        calibrate = np.load(calibrate_filepath)
-        X_calibrate = calibrate["X"]
-        y_calibrate = calibrate["y"]
-        y_calibrate = y_calibrate.reshape((y_calibrate.shape[0],))
-        model.calibrate(X_calibrate, y_calibrate)
-
-        print(f"Calibration: {X_calibrate.shape}")
-
-        # Set conformal prediction error. This should be a parameter specified by the user.
-        error = 0.05
-
-        # Predictions will contain the intervals. We need to compute the middle
-        # points to get the actual predictions y.
-        predictions = model.predict(X_test, significance=error)
-
-        # Compute middle points.
-        y_pred = predictions[:, 0] + (predictions[:, 1] - predictions[:, 0]) / 2
-
-        # Reshape to put it in the same format as without calibration set.
-        y_pred = y_pred.reshape((y_pred.shape[0], 1))
-
-        # Build data frame with predictions.
-        my_results = list(
-            zip(
-                np.reshape(y_test, (y_test.shape[0],)),
-                np.reshape(y_pred, (y_pred.shape[0],)),
-                predictions[:, 0],
-                predictions[:, 1],
-            )
-        )
-
-        df_predictions = pd.DataFrame(
-            my_results,
-            columns=["ground_truth", "predicted", "lower_bound", "upper_bound"],
-        )
-
-        save_predictions(df_predictions)
-
-        plot_confidence_intervals(df_predictions)
-
+    if learning_method in NON_DL_METHODS:
+        model = load(model_filepath)
     else:
-        if learning_method in NON_DL_METHODS:
-            model = load(model_filepath)
-        else:
-            model = models.load_model(model_filepath)
+        model = models.load_model(model_filepath)
 
-        y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test)
 
-        if onehot_encode_target:
-            y_pred_probs = y_pred
-            y_pred = np.argmax(y_pred, axis=-1)
-        elif classification:
-            y_pred_probs = y_pred
-            y_pred = np.array((y_pred > 0.5), dtype=np.int)
+    if onehot_encode_target:
+        y_pred_probs = y_pred
+        y_pred = np.argmax(y_pred, axis=-1)
+    elif classification:
+        y_pred_probs = y_pred
+        y_pred = np.array((y_pred > 0.5), dtype=np.int)
 
     if classification:
 
