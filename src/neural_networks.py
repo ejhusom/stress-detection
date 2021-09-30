@@ -186,7 +186,7 @@ def dnn(
     # model.add(layers.Dense(4, activation="relu"))
     # model.add(layers.Dense(256, activation='relu', input_dim=input_x))
     # model.add(layers.Dropout(0.5))
-    # model.add(layers.Dense(8, activation="relu"))
+    model.add(layers.Dense(4, activation="relu"))
     # model.add(layers.Dense(32, activation='relu'))
     # model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(output_length, activation=output_activation))

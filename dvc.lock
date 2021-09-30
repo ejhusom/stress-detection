@@ -208,8 +208,8 @@ stages:
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
     - path: src/neural_networks.py
-      md5: 8b2714fd385633ebbdd8607363c39433
-      size: 12371
+      md5: fa37fae3ff673d84610a3ef2780e36a7
+      size: 12369
     - path: src/train.py
       md5: 908cd70c7a3286fcc018dfd6e1a3dafb
       size: 8234
@@ -224,8 +224,8 @@ stages:
         train.patience: 3
     outs:
     - path: assets/models
-      md5: 6ddcf98fe7b535b5f962365f2d04bfb0.dir
-      size: 25536
+      md5: eb7a278977fd1815c6bc3f594331b4fd.dir
+      size: 32552
       nfiles: 1
   evaluate:
     cmd: python3 src/evaluate.py assets/models/model.h5 assets/data/combined/train.npz
@@ -238,8 +238,8 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: af25f76d6eb66adc8ab0a880799798b5
-      size: 25536
+      md5: 82bac07a2f6d4506e3c82aad31b0fe88
+      size: 32552
     - path: src/evaluate.py
       md5: 76181235d45342f56527cbe4a506c3b0
       size: 9354
@@ -248,5 +248,5 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: da837373bddd82902459195786e26dc5
+      md5: 5b9974cb5d03f0decaa80d8e1c3f7055
       size: 32
