@@ -46,7 +46,7 @@ sequentialize:
 train:
     learning_method: dnn
     # learning_method: xgboost
-    n_epochs: 50
+    n_epochs: 10
     batch_size: 256
     kernel_size: 9
     early_stopping: False

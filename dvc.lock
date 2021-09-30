@@ -220,11 +220,11 @@ stages:
         train.early_stopping: false
         train.kernel_size: 9
         train.learning_method: dnn
-        train.n_epochs: 50
+        train.n_epochs: 10
         train.patience: 3
     outs:
     - path: assets/models
-      md5: e7a8dbbe4bf0b73a0c27dc24a91db717.dir
+      md5: 082745178e56e80787653870c6116b9c.dir
       size: 25536
       nfiles: 1
   evaluate:
@@ -238,7 +238,7 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: 38ceb9ffd15d8dc39eebdfde43d601c4
+      md5: 2b765dc84c0d7f22756596071a06750b
       size: 25536
     - path: src/evaluate.py
       md5: 76181235d45342f56527cbe4a506c3b0
@@ -248,5 +248,5 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: c951fa0777ef78c355b5e3f8753accfb
+      md5: 7e739adcdf158cb2e8edea9c576ea9e2
       size: 32
