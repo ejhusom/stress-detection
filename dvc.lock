@@ -79,23 +79,23 @@ stages:
         clean.target: label
         featurize.add_rolling_features: false
         featurize.features:
-        - wrist_temp
+        - wrist_eda
         featurize.remove_features:
         featurize.rolling_window_size: 512
         featurize.target_min_correlation_threshold: 0.0
     outs:
     - path: assets/data/featurized
-      md5: 9bcf4224583b155da0f935c50e6fb269.dir
+      md5: 71bda87f011491889da2b74ebb9b37d3.dir
       size: 33949568
       nfiles: 15
     - path: assets/data/input_columns.csv
-      md5: 19e9a5dc96425209c2c20da748ef2b42
-      size: 16
+      md5: aac92efe130c10adfe565918e91844bf
+      size: 15
   split:
     cmd: python3 src/split.py assets/data/featurized/
     deps:
     - path: assets/data/featurized
-      md5: 9bcf4224583b155da0f935c50e6fb269.dir
+      md5: 71bda87f011491889da2b74ebb9b37d3.dir
       size: 33949568
       nfiles: 15
     - path: src/config.py
@@ -111,7 +111,7 @@ stages:
         split.train_split: 0.7
     outs:
     - path: assets/data/split
-      md5: 6c5038457bcb0327193310965df02e80.dir
+      md5: 0dcdc642e9153949fe64910f203a68e0.dir
       size: 33949568
       nfiles: 15
   scale:
@@ -121,7 +121,7 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/data/split
-      md5: 6c5038457bcb0327193310965df02e80.dir
+      md5: 0dcdc642e9153949fe64910f203a68e0.dir
       size: 33949568
       nfiles: 15
     - path: src/config.py
@@ -137,7 +137,7 @@ stages:
         scale.output: minmax
     outs:
     - path: assets/data/scaled
-      md5: 180406c260cd9479c09cf0cdf8a1068a.dir
+      md5: 957e2df960f71a0aca1fe65af33951ad.dir
       size: 33954998
       nfiles: 15
   sequentialize:
@@ -147,7 +147,7 @@ stages:
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/data/scaled
-      md5: 180406c260cd9479c09cf0cdf8a1068a.dir
+      md5: 957e2df960f71a0aca1fe65af33951ad.dir
       size: 33954998
       nfiles: 15
     - path: src/config.py
@@ -168,14 +168,14 @@ stages:
         train.learning_method: dnn
     outs:
     - path: assets/data/sequentialized
-      md5: 9113453599439363b808c076d4252442.dir
+      md5: 8560fa130d035bc983000bb396de2f19.dir
       size: 33954998
       nfiles: 15
   combine:
     cmd: python3 src/combine.py assets/data/sequentialized/
     deps:
     - path: assets/data/sequentialized
-      md5: 9113453599439363b808c076d4252442.dir
+      md5: 8560fa130d035bc983000bb396de2f19.dir
       size: 33954998
       nfiles: 15
     - path: src/combine.py
@@ -186,14 +186,14 @@ stages:
       size: 1983
     outs:
     - path: assets/data/combined
-      md5: 4fca766d5249f8d2aa35dd3fe13a60de.dir
+      md5: 3225a04dd487d00f31e8e83ea0d50aa9.dir
       size: 33948628
       nfiles: 2
   train:
     cmd: python3 src/train.py assets/data/combined/train.npz
     deps:
     - path: assets/data/combined
-      md5: 4fca766d5249f8d2aa35dd3fe13a60de.dir
+      md5: 3225a04dd487d00f31e8e83ea0d50aa9.dir
       size: 33948628
       nfiles: 2
     - path: assets/data/output_columns.csv
@@ -219,7 +219,7 @@ stages:
         train.patience: 3
     outs:
     - path: assets/models
-      md5: 009d0ed06f31f2aabc0692daacdfdac4.dir
+      md5: 2eb53f4a1d32baeca3f485ea75e803db.dir
       size: 32552
       nfiles: 1
   evaluate:
@@ -227,13 +227,13 @@ stages:
       assets/data/combined/test.npz assets/data/combined/calibrate.npz
     deps:
     - path: assets/data/combined/test.npz
-      md5: 7bc7ab000d2cc1b11e7f3145db271fca
+      md5: f49e991fd6ee5e79f54a67c2b3ca7dd6
       size: 11288042
     - path: assets/data/output_columns.csv
       md5: 6ce1c68917ca3988d2c92aeffaf7e4ad
       size: 11
     - path: assets/models/model.h5
-      md5: bef7a79935a18346d78c917200df9b8c
+      md5: e5fa33c3ff92e7dd38fd64a68cf687bf
       size: 32552
     - path: src/evaluate.py
       md5: 76181235d45342f56527cbe4a506c3b0
@@ -243,5 +243,5 @@ stages:
         clean.classification: true
     outs:
     - path: assets/metrics/metrics.json
-      md5: 9c9f317dd4d45680d0bb8127e3df8a23
+      md5: 36c98eb06f57693cbdea75c21fd9228c
       size: 32
