@@ -16,8 +16,8 @@ featurize:
         # - wrist_acc_y
         # - wrist_acc_z
         - wrist_temp
-        - wrist_eda
-        - wrist_bvp
+        # - wrist_eda
+        # - wrist_bvp
     add_rolling_features: False
     remove_features:
         # - wrist_acc_x
