@@ -42,9 +42,13 @@ for i in range(len(y)):
 
 
 y_hat = pd.Series(y_hat)
+
 # y_hat = y_hat.rolling(100).apply(lambda x: x.mode()[0])
-mean = y_hat.rolling(1000).mean()
-y_hat = np.where(mean < 0.01, 0, 1)
+
+# mean = y_hat.rolling(10000).mean()
+# y_hat = np.where(mean < 0.5, 0, 1)
+
+# y_hat = y_hat | mask
 
 accuracy = accuracy_score(y, y_hat)
 
@@ -52,5 +56,6 @@ plt.figure()
 plt.plot(y, label="true")
 plt.plot(y_hat, "--", label="pred")
 plt.title(f"Accuracy: {accuracy}")
+# plt.plot(mask, alpha = 0.7)
 plt.legend()
 plt.show()

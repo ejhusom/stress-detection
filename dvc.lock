@@ -72,8 +72,8 @@ stages:
       md5: 581c58923dda757a36e5cdd604ee0c40
       size: 1983
     - path: src/featurize.py
-      md5: 16c2c89ceff61f4bc824ee3251e5a61b
-      size: 13024
+      md5: e5063af1b683e4a6aff497352fad805c
+      size: 13046
     params:
       params.yaml:
         clean.target: label
